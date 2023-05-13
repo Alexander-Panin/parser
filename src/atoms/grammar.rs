@@ -5,23 +5,23 @@ pub enum Token {
     Assignment,
     BracketLeft,
     BracketRight,
+    Const,
     CurlyBracketLeft,
     CurlyBracketRight,
     EqualSign,
     Expr,
-    ExprBody,
-    Number,
-    MinusOperator,
-    Operator,
-    Const,
-    Let,
-    Statement,
     If,
     IfBody,
+    Let,
+    Minus,
+    Number,
+    Operator,
+    Statement,
+    Term,
+    Var,
+    Variable,
     While,
     WhileBody,
-    Term,
-    Variable,
 
     #[default]
     Never,
@@ -31,19 +31,14 @@ pub fn token_tree() -> TokenTree {
     TokenTree {
         expr: tree![
             | BracketLeft, Expr, BracketRight, Term
-            | MinusOperator, ExprBody
+            | Minus, Expr
             | Number, Term
             | Variable, Term
             | Never
         ],
         term: tree![
-            | MinusOperator, Expr
+            | Minus, Expr
             | Operator, Expr
-        ],
-        expr_body: tree![
-            | Number, Term
-            | Variable, Term
-            | Never
         ],
         assignment: tree![
             | Variable, EqualSign, Expr 
@@ -54,8 +49,8 @@ pub fn token_tree() -> TokenTree {
             | While, WhileBody
             | Const, Assignment 
             | Let, Assignment
+            | Var, Assignment
             | Variable, EqualSign, Expr 
-            | Never
         ],
         if_body: tree![
             | BracketLeft, Expr, BracketRight,
@@ -78,7 +73,6 @@ pub struct TokenTree {
     pub statement: Rc<Node>,        
     pub if_body: Rc<Node>,        
     pub while_body: Rc<Node>,
-    pub expr_body: Rc<Node>,
 }
 
 #[derive(Default, PartialEq, PartialOrd, Debug)]

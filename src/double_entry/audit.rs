@@ -25,13 +25,6 @@ impl Audit {
         }
     }
 
-    pub fn double_entry_expr_body(&mut self) {
-        let t = self.registry.append(self.tt.expr_body.clone());
-        for _ in 0..2 { // longest path
-            self.queue.push(t); 
-        }
-    }
-
     pub fn double_entry_while_body(&mut self) {
         let t = self.registry.append(self.tt.while_body.clone());
         for _ in 0..6 { // longest path
@@ -63,9 +56,6 @@ impl Audit {
         match token {
             Token::Expr => {
                 self.double_entry_expr();
-            },
-            Token::ExprBody => {
-                self.double_entry_expr_body();
             },
             Token::Term => {
                 self.double_entry_term();
