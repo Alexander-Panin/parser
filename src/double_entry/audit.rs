@@ -64,28 +64,23 @@ impl Audit {
         }
     }
 
-    fn audit_step(&mut self, t: ID, ok: bool) -> Option<Token> {
-        let x = self.registry.get_mut(t);
-        if x.is_none() { return None; }
-        let e = x.unwrap();
-        if e.val == Token::Never {
-            return None;
-        }
-        let y = if ok { 
+    fn audit_step(&mut self, t: ID, ok: bool) {
+        let e = self.registry.get_mut(t).unwrap();
+        if e.val == Token::Never { return; }
+        let x = if ok { 
             e.ok.as_ref().map(|n| n.clone()) 
-        } else { e.err.as_ref().map(|n| n.clone()) };
-        if y.is_none() {
-            self.registry.erase(t);
-            return None;
+        } else { 
+            e.err.as_ref().map(|n| n.clone()) 
+        };
+        if x.is_none() { 
+            self.registry.erase(t); 
+            return;
         }
-        *e = y.unwrap();
-        return Some(e.val);
+        *e = x.unwrap();
     }
 
     fn boost_entry(&mut self, t: ID) {
-        let x = self.registry.get_mut(t);
-        if x.is_none() { return; }
-        let e = x.unwrap();
+        let e = self.registry.get_mut(t).unwrap();
         if e.ok.is_none() {
             self.registry.erase(t);
             return;
