@@ -15,13 +15,20 @@ fn main() {
     let mut ts = tokens("
         if (1) { 
             while(-a+2) { 
-                var a = 5
+                const abZc123 = -11 + 33 * 25 - 5
+                var a = (((1+2)+(3+5))*2)+5
+                bba = (1+2)+(3+5)*2+5;
+                bba = 5;
+                bba = 5
+                var fn = function() { x = 5 };
             }
         }
+        const x = 5;
+        const x = 5;
     ".bytes().peekable());
     ts.reverse();
     state.matcher = ts;
-    state.double_entry_statement();
+    state.double_entry(state.tt.statement.clone());
     state.audit();
     println!("done {:?}", state.registry);
 }

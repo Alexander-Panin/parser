@@ -1,8 +1,9 @@
 use std::iter::{Peekable};
 use crate::atoms::{Token};
 
-const KEYWORDS: [(&str, Token); 5] = [
+const KEYWORDS: [(&str, Token); 6] = [
     ("const", Token::Const), 
+    ("function", Token::Function), 
     ("if", Token::If), 
     ("let", Token::Let),
     ("var", Token::Var),
@@ -58,9 +59,10 @@ pub fn tokens<I>(mut fst: Peekable<I>) -> Vec<Token>
             ')' => r.push(Token::BracketRight),
             '{' => r.push(Token::CurlyBracketLeft),
             '}' => r.push(Token::CurlyBracketRight),
+            ';' => r.push(Token::Semicolon),
             ' ' => {}, // space 
             '\n' => {}, // space 
-            _ => { println!("{}", ch); }, // space 
+            _ => { }, // space 
         }
     }
     println!("{:#?}", r);

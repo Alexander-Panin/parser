@@ -1,5 +1,5 @@
 use std::rc::Rc;
-use crate::atoms::{Token, TokenTree, Node};
+use crate::atoms::{Token, TokenTree, Node, tree_length};
 use crate::registry::{Registry, ID};
 
 #[derive(Default, PartialEq, Debug)]
@@ -11,70 +11,42 @@ pub struct Audit {
 }
 
 impl Audit {
-    pub fn double_entry_statement(&mut self) {
-        let t = self.registry.append(self.tt.statement.clone());
-        for _ in 0..7 { // longest path
-            self.queue.push(t); 
-        }
+    pub fn double_entry(&mut self, node: Rc<Node>) {
+        let t = self.registry.append(node.clone());
+        let n = tree_length(Some(node));
+        for _ in 0..n { self.queue.push(t); }
     }
 
-    pub fn double_entry_if_body(&mut self) {
-        let t = self.registry.append(self.tt.if_body.clone());
-        for _ in 0..6 { // longest path
-            self.queue.push(t); 
-        }
-    }
-
-    pub fn double_entry_while_body(&mut self) {
-        let t = self.registry.append(self.tt.while_body.clone());
-        for _ in 0..6 { // longest path
-            self.queue.push(t); 
-        }
-    }
-
-    pub fn double_entry_assignment(&mut self) {
-        let t = self.registry.append(self.tt.assignment.clone());
-        for _ in 0..4 { // longest path
-            self.queue.push(t); 
-        }
-    }
-
-    pub fn double_entry_expr(&mut self) {
-        let t = self.registry.append(self.tt.expr.clone());
-        for _ in 0..6 { // longest path
-            self.queue.push(t); 
-        }
-    }
-
-    pub fn double_entry_term(&mut self) {
-        let t = self.registry.append(self.tt.term.clone());
-        self.queue.push(t); 
-        self.queue.push(t); // longest path of TERM_TREE;
-    }
-
-    fn booking(&mut self, t: ID, token: Token) {
+    fn booked(&mut self, t: ID, token: Token) -> bool {
         match token {
             Token::Expr => {
-                self.double_entry_expr();
+                self.double_entry(self.tt.expr.clone());
             },
             Token::Term => {
-                self.double_entry_term();
+                self.double_entry(self.tt.term.clone());
             },
             Token::Assignment => {
-                self.double_entry_assignment();
+                self.double_entry(self.tt.assignment.clone());
             },
             Token::IfBody => {
-                self.double_entry_if_body();
+                self.double_entry(self.tt.if_body.clone());
             },
             Token::WhileBody => {
-                self.double_entry_while_body();
+                self.double_entry(self.tt.while_body.clone());
             },
             Token::Statement => {
-                self.double_entry_statement();
+                self.double_entry(self.tt.statement.clone());
             },
-            _ => { return; }, 
+            Token::ClosingExpr => {
+                self.double_entry(self.tt.closing_expr.clone());
+            },
+            Token::FunctionBody => {
+                self.double_entry(self.tt.function_body.clone());
+            },
+            _ => { return false; }, 
         }
         self.boost_entry(t);
+        return true;
     }
     
     pub fn audit(&mut self) {
@@ -83,9 +55,11 @@ impl Audit {
             // println!("{:#?}", self.matcher);
             // println!("{:#?}", self.queue);
             // println!("----------------------");
-            let ok = self.approved(t);
-            if let Some(token) = self.audit_step(t, ok) {
-                self.booking(t, token);
+            if let Some(token) = self.registry.get(t).as_ref().map(|n| n.val) {
+                if !self.booked(t, token) {
+                    let ok = self.approved(t);
+                    self.audit_step(t, ok);
+                }
             }
         }
     }

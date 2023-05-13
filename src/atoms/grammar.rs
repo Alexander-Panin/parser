@@ -5,11 +5,14 @@ pub enum Token {
     Assignment,
     BracketLeft,
     BracketRight,
+    ClosingExpr,
     Const,
     CurlyBracketLeft,
     CurlyBracketRight,
     EqualSign,
     Expr,
+    Function,
+    FunctionBody,
     If,
     IfBody,
     Let,
@@ -17,6 +20,7 @@ pub enum Token {
     Number,
     Operator,
     Statement,
+    Semicolon,
     Term,
     Var,
     Variable,
@@ -32,6 +36,7 @@ pub fn token_tree() -> TokenTree {
         expr: tree![
             | BracketLeft, Expr, BracketRight, Term
             | Minus, Expr
+            | Function, FunctionBody
             | Number, Term
             | Variable, Term
             | Never
@@ -41,16 +46,25 @@ pub fn token_tree() -> TokenTree {
             | Operator, Expr
         ],
         assignment: tree![
-            | Variable, EqualSign, Expr 
+            | Variable, EqualSign, Expr, ClosingExpr 
             | Never
         ],
+        closing_expr: tree![
+            | Semicolon
+        ],
         statement: tree![
-            | If, IfBody
-            | While, WhileBody
-            | Const, Assignment 
-            | Let, Assignment
-            | Var, Assignment
-            | Variable, EqualSign, Expr 
+            | If, IfBody, Statement
+            | While, WhileBody, Statement
+            | Const, Assignment, Statement 
+            | Let, Assignment, Statement
+            | Var, Assignment, Statement
+            | Variable, EqualSign, Expr, ClosingExpr, Statement 
+        ],
+        function_body: tree![
+            // todo function arguments
+            | BracketLeft, BracketRight, 
+                CurlyBracketLeft, Statement, CurlyBracketRight
+            | Never
         ],
         if_body: tree![
             | BracketLeft, Expr, BracketRight,
@@ -67,11 +81,13 @@ pub fn token_tree() -> TokenTree {
 
 #[derive(Default, PartialEq, PartialOrd, Debug)]
 pub struct TokenTree {
-    pub expr: Rc<Node>,
-    pub term: Rc<Node>,        
     pub assignment: Rc<Node>,        
-    pub statement: Rc<Node>,        
+    pub closing_expr: Rc<Node>,
+    pub expr: Rc<Node>,
+    pub function_body: Rc<Node>,
     pub if_body: Rc<Node>,        
+    pub statement: Rc<Node>,        
+    pub term: Rc<Node>,        
     pub while_body: Rc<Node>,
 }
 
@@ -81,3 +97,5 @@ pub struct Node {
     pub ok: Option<Rc<Node>>,
     pub err: Option<Rc<Node>>,
 }
+
+
