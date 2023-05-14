@@ -10,6 +10,18 @@ const KEYWORDS: [(&str, Token); 6] = [
     ("while", Token::While),
 ];
 
+// todo: not fully covered operator topic
+fn operator<I>(fst: &mut Peekable<I>) 
+    where 
+        I: Iterator<Item=u8> {
+    if let Some(&ch) = fst.peek() {
+        match ch as char {
+            '*' | '&' | '|' => { fst.next(); },
+            _ => { },
+        }
+    }
+}
+
 fn number<I>(fst: &mut Peekable<I>) 
     where 
         I: Iterator<Item=u8> {
@@ -54,7 +66,10 @@ pub fn tokens<I>(mut fst: Peekable<I>) -> Vec<Token>
             },
             '=' => result.push(Token::EqualSign),
             '-' => result.push(Token::Minus),
-            '*' | '+' | '/' => result.push(Token::Operator),
+            '*' | '+' | '/' | '&' | '|' => { 
+                result.push(Token::Operator);
+                operator(&mut fst);
+            },
             '(' => result.push(Token::BracketLeft),
             ')' => result.push(Token::BracketRight),
             '{' => result.push(Token::CurlyBracketLeft),

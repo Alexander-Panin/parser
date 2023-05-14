@@ -15,7 +15,7 @@ fn main() {
     };
     let mut ts = tokens("
         if (1) { 
-            while(-a+2) { 
+            while(-a+2 && x+1 || a+2) { 
                 const abZc123 = -11 + 33 * 25 - 5
                 var a = (((1+2)+(3+5))*2)+5
                 bba = (1+2)+(3+5)*2+5;
