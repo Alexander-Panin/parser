@@ -1,6 +1,7 @@
 use std::rc::Rc;
+use std::collections::HashMap;
 
-#[derive(Default, PartialEq, PartialOrd, Clone, Copy, Debug)]
+#[derive(Default, PartialEq, PartialOrd, Clone, Copy, Debug, Eq, Hash)]
 pub enum Token {
     Assignment,
     BracketLeft,
@@ -35,76 +36,64 @@ pub enum Token {
     Never,
 }
 
-pub fn token_tree() -> TokenTree {
-    TokenTree {
-        expr: tree![
+pub fn token_tree() -> HashMap<Token, Rc<Node>> {
+    use Token::{Expr, Term, Assignment, Statement};
+    use Token::{Call, CallTerm, CallBody};
+    use Token::{FunctionBody, IfBody, WhileBody, ClosingExpr};
+    HashMap::from([
+        (Expr, tree![
             | BracketLeft, Expr, BracketRight, Term
             | Minus, Expr
             | Function, FunctionBody
             | Number, Term
             | Variable, Call, Term
             | Never
-        ],
-        term: tree![
+        ]),
+        (Term, tree![
             | Minus, Expr
             | Operator, Expr
-        ],
-        assignment: tree![
+        ]),
+        (Assignment, tree![
             | Variable, EqualSign, Expr, ClosingExpr 
             | Never
-        ],
-        statement: tree![
+        ]),
+        (Statement, tree![
             | If, IfBody, Statement
             | While, WhileBody, Statement
             | Const, Assignment, Statement 
             | Let, Assignment, Statement
             | Var, Assignment, Statement
             | Variable, EqualSign, Expr, ClosingExpr, Statement 
-        ],
-        closing_expr: tree![
-            | Semicolon
-        ],
-        call: tree![
+        ]),
+        (Call, tree![
             | BracketLeft, CallBody
-        ],
-        call_body: tree![
+        ]),
+        (CallBody, tree![
             | BracketRight
             | Expr, CallTerm, BracketRight
             | Never
-        ],
-        call_term: tree![
+        ]),
+        (CallTerm, tree![
             | Comma, Expr, CallTerm
-        ],
-        function_body: tree![
+        ]),
+        (FunctionBody, tree![
             | Call, CurlyBracketLeft, Statement, CurlyBracketRight
             | Never
-        ],
-        if_body: tree![
+        ]),
+        (IfBody, tree![
             | BracketLeft, Expr, BracketRight,
                 CurlyBracketLeft, Statement, CurlyBracketRight
             | Never
-        ],
-        while_body: tree![
+        ]),
+        (WhileBody, tree![
             | BracketLeft, Expr, BracketRight,
                 CurlyBracketLeft, Statement, CurlyBracketRight
             | Never
-        ],
-    }
-}
-
-#[derive(Default, PartialEq, PartialOrd, Debug)]
-pub struct TokenTree {
-    pub assignment: Rc<Node>,        
-    pub closing_expr: Rc<Node>,
-    pub expr: Rc<Node>,
-    pub function_body: Rc<Node>,
-    pub if_body: Rc<Node>,        
-    pub statement: Rc<Node>,        
-    pub term: Rc<Node>,        
-    pub while_body: Rc<Node>,
-    pub call: Rc<Node>,
-    pub call_body: Rc<Node>,
-    pub call_term: Rc<Node>,
+        ]),
+        (ClosingExpr, tree![
+            | Semicolon
+        ]),
+    ])
 }
 
 #[derive(Default, PartialEq, PartialOrd, Debug)]

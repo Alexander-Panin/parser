@@ -1,5 +1,6 @@
 use std::rc::Rc;
-use crate::atoms::{Token, TokenTree, Node, tree_length};
+use std::collections::HashMap;
+use crate::atoms::{Token, Node, tree_length};
 use crate::registry::{Registry, ID};
 
 #[derive(Default, PartialEq, Debug)]
@@ -7,7 +8,7 @@ pub struct Audit {
     pub registry: Registry<Rc<Node>>,
     pub queue: Vec<ID>,
     pub matcher: Vec<Token>,
-    pub tt: TokenTree,
+    pub tt: HashMap<Token, Rc<Node>>,
 }
 
 impl Audit {
@@ -18,42 +19,9 @@ impl Audit {
     }
 
     fn booked(&mut self, t: ID, token: Token) -> bool {
-        match token {
-            Token::Expr => {
-                self.double_entry(self.tt.expr.clone());
-            },
-            Token::Term => {
-                self.double_entry(self.tt.term.clone());
-            },
-            Token::Assignment => {
-                self.double_entry(self.tt.assignment.clone());
-            },
-            Token::IfBody => {
-                self.double_entry(self.tt.if_body.clone());
-            },
-            Token::WhileBody => {
-                self.double_entry(self.tt.while_body.clone());
-            },
-            Token::Statement => {
-                self.double_entry(self.tt.statement.clone());
-            },
-            Token::ClosingExpr => {
-                self.double_entry(self.tt.closing_expr.clone());
-            },
-            Token::FunctionBody => {
-                self.double_entry(self.tt.function_body.clone());
-            },
-            Token::Call => {
-                self.double_entry(self.tt.call.clone());
-            },
-            Token::CallBody => {
-                self.double_entry(self.tt.call_body.clone());
-            },
-            Token::CallTerm => {
-                self.double_entry(self.tt.call_term.clone());
-            },
-            _ => { return false; }, 
-        }
+        let r = self.tt.get(&token);
+        if r.is_none() { return false; }
+        self.double_entry(r.cloned().unwrap());
         self.boost_entry(t);
         true
     }

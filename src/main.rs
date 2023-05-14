@@ -3,7 +3,7 @@ mod registry;
 mod double_entry;
 
 use double_entry::{Audit};
-use atoms::{token_tree, tokens};
+use atoms::{token_tree, tokens, Token};
 
 fn main() {
     // let mut state = Audit::default();
@@ -29,7 +29,7 @@ fn main() {
     ".bytes().peekable());
     ts.reverse();
     state.matcher = ts;
-    state.double_entry(state.tt.statement.clone());
+    state.double_entry(state.tt.get(&Token::Statement).unwrap().clone());
     state.audit();
     println!("done {:?}", state.registry);
 }
