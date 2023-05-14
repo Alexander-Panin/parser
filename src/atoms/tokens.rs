@@ -35,36 +35,38 @@ fn variable<I>(fst: &mut Peekable<I>, x: char) -> Token
     }
     let s: String = r.iter().collect();
     let i = KEYWORDS.partition_point(|x| x.0 < &s);
-    let ok = i != KEYWORDS.len() && KEYWORDS[i].0 == &s;
+    let ok = i != KEYWORDS.len() && KEYWORDS[i].0 == s;
     if ok { KEYWORDS[i].1 } else { Token::Variable }
 }
 
 pub fn tokens<I>(mut fst: Peekable<I>) -> Vec<Token> 
     where 
         I: Iterator<Item=u8> {
-    let mut r = vec![];
+    let mut result = vec![];
     while let Some(ch) = fst.next() {
         match ch as char {
             '0'..='9' => {
-                r.push(Token::Number);
+                result.push(Token::Number);
                 number(&mut fst);
             },
             'A'..='Z' | 'a'..='z' => {
-                r.push(variable(&mut fst, ch as char));
+                result.push(variable(&mut fst, ch as char));
             },
-            '=' => r.push(Token::EqualSign),
-            '-' => r.push(Token::Minus),
-            '*' | '+' | '/' => r.push(Token::Operator),
-            '(' => r.push(Token::BracketLeft),
-            ')' => r.push(Token::BracketRight),
-            '{' => r.push(Token::CurlyBracketLeft),
-            '}' => r.push(Token::CurlyBracketRight),
-            ';' => r.push(Token::Semicolon),
+            '=' => result.push(Token::EqualSign),
+            '-' => result.push(Token::Minus),
+            '*' | '+' | '/' => result.push(Token::Operator),
+            '(' => result.push(Token::BracketLeft),
+            ')' => result.push(Token::BracketRight),
+            '{' => result.push(Token::CurlyBracketLeft),
+            '}' => result.push(Token::CurlyBracketRight),
+            ';' => result.push(Token::Semicolon),
             ' ' => {}, // space 
             '\n' => {}, // space 
             _ => { }, // space 
         }
     }
-    println!("{:#?}", r);
-    return r;
+    println!("{:#?}", result);
+    result
 }
+
+

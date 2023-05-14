@@ -46,7 +46,7 @@ impl Audit {
             _ => { return false; }, 
         }
         self.boost_entry(t);
-        return true;
+        true
     }
     
     pub fn audit(&mut self) {
@@ -68,9 +68,9 @@ impl Audit {
         let e = self.registry.get_mut(t).unwrap();
         if e.val == Token::Never { return; }
         let x = if ok { 
-            e.ok.as_ref().map(|n| n.clone()) 
+            e.ok.as_ref().cloned() 
         } else { 
-            e.err.as_ref().map(|n| n.clone()) 
+            e.err.as_ref().cloned() 
         };
         if x.is_none() { 
             self.registry.erase(t); 
@@ -91,9 +91,9 @@ impl Audit {
     fn approved(&mut self, t: ID) -> bool {
         let x = self.registry.get(t).as_ref().map(|n| n.val);
         let y = self.matcher.last().cloned(); 
-        let r = x == y; 
-        if r { self.matcher.pop(); }
-        return r;    
+        let result = x == y; 
+        if result { self.matcher.pop(); }
+        result
     }
 }
 

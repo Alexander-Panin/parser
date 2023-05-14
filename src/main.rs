@@ -6,8 +6,15 @@ use double_entry::{Audit};
 use atoms::{token_tree, tokens};
 
 fn main() {
-    let mut state = Audit::default();
-    state.tt = token_tree();
+    // let mut state = Audit::default();
+    // state.tt = token_tree();
+
+    let mut state = Audit {
+        tt: token_tree(),
+        ..Default::default()
+    };
+
+
     // let mut ts = tokens("(1+2)+(3+5)*2+5");
     // let mut ts = tokens("x = (((1+2)+(3+5))*2)+5".bytes().peekable());
     // let mut ts = tokens("(((1+2)+(3+5))*2+5"); // invalid

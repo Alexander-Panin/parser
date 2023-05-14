@@ -25,10 +25,10 @@ impl<T> Registry<T> {
 
     pub fn append(&mut self, val: T) -> ID {
         self.map.push( (self.id, Some(val)));
-        let t = self.id;
+        let token = self.id;
         self.size += 1;
         self.id += 1;
-        return t;
+        token
     }
 
     pub fn erase(&mut self, t: ID) { 
