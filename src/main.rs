@@ -13,19 +13,13 @@ fn main() {
         tt: token_tree(),
         ..Default::default()
     };
-
-
-    // let mut ts = tokens("(1+2)+(3+5)*2+5");
-    // let mut ts = tokens("x = (((1+2)+(3+5))*2)+5".bytes().peekable());
-    // let mut ts = tokens("(((1+2)+(3+5))*2+5"); // invalid
-    // let mut ts = tokens("const abZc123 = -11 + 33 * 25 - 5".bytes().peekable());
     let mut ts = tokens("
         if (1) { 
             while(-a+2) { 
                 const abZc123 = -11 + 33 * 25 - 5
                 var a = (((1+2)+(3+5))*2)+5
                 bba = (1+2)+(3+5)*2+5;
-                bba = 5;
+                bba = 5 + a(8,5+3*2);
                 bba = 5
                 var fn = function() { x = 5 };
             }

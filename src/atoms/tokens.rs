@@ -60,6 +60,7 @@ pub fn tokens<I>(mut fst: Peekable<I>) -> Vec<Token>
             '{' => result.push(Token::CurlyBracketLeft),
             '}' => result.push(Token::CurlyBracketRight),
             ';' => result.push(Token::Semicolon),
+            ',' => result.push(Token::Comma),
             ' ' => {}, // space 
             '\n' => {}, // space 
             _ => { }, // space 

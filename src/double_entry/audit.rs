@@ -43,6 +43,15 @@ impl Audit {
             Token::FunctionBody => {
                 self.double_entry(self.tt.function_body.clone());
             },
+            Token::Call => {
+                self.double_entry(self.tt.call.clone());
+            },
+            Token::CallBody => {
+                self.double_entry(self.tt.call_body.clone());
+            },
+            Token::CallTerm => {
+                self.double_entry(self.tt.call_term.clone());
+            },
             _ => { return false; }, 
         }
         self.boost_entry(t);

@@ -5,8 +5,12 @@ pub enum Token {
     Assignment,
     BracketLeft,
     BracketRight,
+    Call,
+    CallBody,
+    CallTerm,
     ClosingExpr,
     Const,
+    Comma,
     CurlyBracketLeft,
     CurlyBracketRight,
     EqualSign,
@@ -38,7 +42,7 @@ pub fn token_tree() -> TokenTree {
             | Minus, Expr
             | Function, FunctionBody
             | Number, Term
-            | Variable, Term
+            | Variable, Call, Term
             | Never
         ],
         term: tree![
@@ -49,9 +53,6 @@ pub fn token_tree() -> TokenTree {
             | Variable, EqualSign, Expr, ClosingExpr 
             | Never
         ],
-        closing_expr: tree![
-            | Semicolon
-        ],
         statement: tree![
             | If, IfBody, Statement
             | While, WhileBody, Statement
@@ -60,10 +61,22 @@ pub fn token_tree() -> TokenTree {
             | Var, Assignment, Statement
             | Variable, EqualSign, Expr, ClosingExpr, Statement 
         ],
+        closing_expr: tree![
+            | Semicolon
+        ],
+        call: tree![
+            | BracketLeft, CallBody
+        ],
+        call_body: tree![
+            | BracketRight
+            | Expr, CallTerm, BracketRight
+            | Never
+        ],
+        call_term: tree![
+            | Comma, Expr, CallTerm
+        ],
         function_body: tree![
-            // todo function arguments
-            | BracketLeft, BracketRight, 
-                CurlyBracketLeft, Statement, CurlyBracketRight
+            | Call, CurlyBracketLeft, Statement, CurlyBracketRight
             | Never
         ],
         if_body: tree![
@@ -89,6 +102,9 @@ pub struct TokenTree {
     pub statement: Rc<Node>,        
     pub term: Rc<Node>,        
     pub while_body: Rc<Node>,
+    pub call: Rc<Node>,
+    pub call_body: Rc<Node>,
+    pub call_term: Rc<Node>,
 }
 
 #[derive(Default, PartialEq, PartialOrd, Debug)]
