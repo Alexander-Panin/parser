@@ -112,7 +112,7 @@ pub fn tokens<I>(mut fst: Peekable<I>) -> Vec<Token>
             _ => { }, // space
         }
     }
-    println!("{:#?}", result);
+    // println!("{:#?}", result);
     result
 }
 
