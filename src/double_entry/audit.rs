@@ -18,14 +18,6 @@ impl Audit {
         for _ in 0..n { self.queue.push(t); }
     }
 
-    fn booked(&mut self, t: ID, token: Token) -> bool {
-        let r = self.tt.get(&token);
-        if r.is_none() { return false; }
-        self.double_entry(r.cloned().unwrap());
-        self.boost_entry(t);
-        true
-    }
-    
     pub fn audit(&mut self) {
         while let Some(t) = self.queue.pop() {
             // println!("{:#?}", self.registry);
@@ -38,6 +30,23 @@ impl Audit {
                     self.audit_step(t, ok);
                 }
             }
+        }
+    }
+
+    fn booked(&mut self, t: ID, token: Token) -> bool {
+        let r = self.tt.get(&token);
+        if r.is_none() { return false; }
+        self.double_entry(r.cloned().unwrap());
+        self.boost_entry(t);
+        self.backtrace(token);
+        true
+    }
+
+    fn backtrace(&mut self, token: Token) {
+        match token {
+            Token::BracketLeftBack => self.matcher.push(Token::BracketLeft),
+            Token::VariableBack => self.matcher.push(Token::Variable),
+            _ => {}
         }
     }
 

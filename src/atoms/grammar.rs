@@ -4,67 +4,89 @@ use std::collections::HashMap;
 #[derive(Default, PartialEq, PartialOrd, Clone, Copy, Debug, Eq, Hash)]
 pub enum Token {
     Assignment,
+    AssignmentOrCall,
+    Await,
     BracketLeft,
     BracketRight,
     Call,
     CallBody,
     CallTerm,
+    Class,
+    ClassBody,
     ClosingExpr,
     Const,
     Comma,
     CurlyBracketLeft,
     CurlyBracketRight,
+    Dot,
+    DotTerm,
     EqualSign,
     Expr,
+    ExprMath,
+    Extends,
+    FatArrow,
     Function,
     FunctionBody,
     If,
     IfBody,
+    Lambda2,
+    Lambda3,
+    LambdaBody,
     Let,
+    Method,
     Minus,
+    New,
     Number,
     Operator,
     Statement,
     Semicolon,
-    Term,
+    TermMath,
     Var,
     Variable,
+    VariableBody,
     While,
     WhileBody,
+
+    // Backtracing 
+    BracketLeftBack,
+    VariableBack,
+    Always,
 
     #[default]
     Never,
 }
 
 pub fn token_tree() -> HashMap<Token, Rc<Node>> {
-    use Token::{Expr, Term, Assignment, Statement};
-    use Token::{Call, CallTerm, CallBody};
+    use Token::{Expr, TermMath, Assignment, ExprMath, Statement };
+    use Token::{Call, CallTerm, CallBody, AssignmentOrCall, DotTerm};
+    use Token::{Lambda2, Lambda3, LambdaBody, BracketLeftBack, VariableBack};
     use Token::{FunctionBody, IfBody, WhileBody, ClosingExpr};
-    HashMap::from([
-        (Expr, tree![
-            | BracketLeft, Expr, BracketRight, Term
-            | Minus, Expr
-            | Function, FunctionBody
-            | Number, Term
-            | Variable, Call, Term
+    use Token::{ClassBody, VariableBody, Method};
+
+    let lambda = HashMap::from([
+        (Lambda2, tree![
+            | BracketRight, FatArrow, LambdaBody
+            | Variable, Lambda3
+            | BracketLeftBack, ExprMath
+        ]),
+        (Lambda3, tree![
+            | BracketRight, FatArrow, LambdaBody
+            | Comma, Variable, CallTerm, BracketRight, FatArrow, LambdaBody
+            | VariableBack, BracketLeftBack, ExprMath
+        ]),
+        (LambdaBody, tree![
+            | CurlyBracketLeft, Statement, CurlyBracketRight
+            | Expr
             | Never
         ]),
-        (Term, tree![
-            | Minus, Expr
-            | Operator, Expr
+        (BracketLeftBack, tree![
+            | Always 
         ]),
-        (Assignment, tree![
-            | Variable, EqualSign, Expr, ClosingExpr 
-            | Never
+        (VariableBack, tree![
+            | Always
         ]),
-        (Statement, tree![
-            | If, IfBody, Statement
-            | While, WhileBody, Statement
-            | Const, Assignment, Statement 
-            | Let, Assignment, Statement
-            | Var, Assignment, Statement
-            | Variable, EqualSign, Expr, ClosingExpr, Statement 
-        ]),
+    ]);
+    let call = HashMap::from([
         (Call, tree![
             | BracketLeft, CallBody
         ]),
@@ -75,6 +97,62 @@ pub fn token_tree() -> HashMap<Token, Rc<Node>> {
         ]),
         (CallTerm, tree![
             | Comma, Expr, CallTerm
+        ]),
+    ]);
+
+    let mut expr = HashMap::from([
+        (ExprMath, tree![
+            | BracketLeft, ExprMath, BracketRight, TermMath
+            | Minus, ExprMath
+            | Function, FunctionBody
+            | Number, TermMath
+            | Await, VariableBody
+            | New, VariableBody
+            | VariableBody
+            | Never
+        ]),
+        (VariableBody, tree![
+            | Variable, Call, TermMath
+            | Never
+        ]),
+        (TermMath, tree![
+            | Minus, ExprMath
+            | Operator, ExprMath
+            | Dot, ExprMath
+        ]),
+        
+        (Expr, tree![ // <- Lambda
+            | BracketLeft, Lambda2
+            | ExprMath
+        ]),
+        (Assignment, tree![
+            | Variable, EqualSign, Expr, ClosingExpr 
+            | Never
+        ]),
+        (AssignmentOrCall, tree![
+            | EqualSign, Expr, ClosingExpr
+            | Call, ClosingExpr
+        ]),
+        (DotTerm, tree![
+            | Dot, Variable, Call, DotTerm
+        ]),
+        (Statement, tree![
+            | Function, Variable, FunctionBody, Statement
+            | Class, Variable, ClassBody, Statement
+            | If, IfBody, Statement
+            | While, WhileBody, Statement
+            | Const, Assignment, Statement 
+            | Let, Assignment, Statement
+            | Var, Assignment, Statement
+            | Variable, DotTerm, AssignmentOrCall, Statement 
+        ]),
+        (ClassBody, tree![
+            | Extends, Variable, CurlyBracketLeft, Method, CurlyBracketRight 
+            | CurlyBracketLeft, Method, CurlyBracketRight 
+            | Never
+        ]),
+        (Method, tree![
+            | Variable, FunctionBody, Method
         ]),
         (FunctionBody, tree![
             | Call, CurlyBracketLeft, Statement, CurlyBracketRight
@@ -93,7 +171,10 @@ pub fn token_tree() -> HashMap<Token, Rc<Node>> {
         (ClosingExpr, tree![
             | Semicolon
         ]),
-    ])
+    ]);
+    expr.extend(lambda);
+    expr.extend(call);
+    expr
 }
 
 #[derive(Default, PartialEq, PartialOrd, Debug)]

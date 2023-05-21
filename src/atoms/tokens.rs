@@ -1,18 +1,22 @@
 use std::iter::{Peekable};
 use crate::atoms::{Token};
 
-const KEYWORDS: [(&str, Token); 6] = [
-    ("const", Token::Const), 
-    ("function", Token::Function), 
-    ("if", Token::If), 
+const KEYWORDS: [(&str, Token); 10] = [
+    ("await", Token::Await),
+    ("class", Token::Class),
+    ("const", Token::Const),
+    ("extends", Token::Extends),
+    ("function", Token::Function),
+    ("if", Token::If),
     ("let", Token::Let),
+    ("new", Token::New),
     ("var", Token::Var),
     ("while", Token::While),
 ];
 
-// todo: not fully covered operator topic
-fn operator<I>(fst: &mut Peekable<I>) 
-    where 
+// todo: not fully covered operator topic 
+fn operator<I>(fst: &mut Peekable<I>)
+    where
         I: Iterator<Item=u8> {
     if let Some(&ch) = fst.peek() {
         match ch as char {
@@ -22,8 +26,9 @@ fn operator<I>(fst: &mut Peekable<I>)
     }
 }
 
-fn number<I>(fst: &mut Peekable<I>) 
-    where 
+
+fn number<I>(fst: &mut Peekable<I>)
+    where
         I: Iterator<Item=u8> {
     while let Some(&ch) = fst.peek() {
         match ch as char {
@@ -35,7 +40,7 @@ fn number<I>(fst: &mut Peekable<I>)
 }
 
 fn variable<I>(fst: &mut Peekable<I>, x: char) -> Token
-    where 
+    where
         I: Iterator<Item=u8> {
     let mut r = vec![x];
     while let Some(&ch) = fst.peek() {
@@ -51,8 +56,31 @@ fn variable<I>(fst: &mut Peekable<I>, x: char) -> Token
     if ok { KEYWORDS[i].1 } else { Token::Variable }
 }
 
-pub fn tokens<I>(mut fst: Peekable<I>) -> Vec<Token> 
-    where 
+
+fn operator_equal<I>(fst: &mut Peekable<I>) -> Token
+    where
+        I: Iterator<Item=u8> {
+    if let Some(&ch) = fst.peek() {
+        match ch as char {
+            '=' => {
+                fst.next();
+                if fst.peek() == Some(&b'=') {
+                    fst.next();
+                }
+                return Token::Operator;
+            },
+            '>' => {
+                fst.next();
+                return Token::FatArrow;
+            },
+            _ => { },
+        }
+    }
+    Token::EqualSign
+}
+
+pub fn tokens<I>(mut fst: Peekable<I>) -> Vec<Token>
+    where
         I: Iterator<Item=u8> {
     let mut result = vec![];
     while let Some(ch) = fst.next() {
@@ -64,9 +92,11 @@ pub fn tokens<I>(mut fst: Peekable<I>) -> Vec<Token>
             'A'..='Z' | 'a'..='z' => {
                 result.push(variable(&mut fst, ch as char));
             },
-            '=' => result.push(Token::EqualSign),
+            '=' => {
+                result.push(operator_equal(&mut fst));
+            },
             '-' => result.push(Token::Minus),
-            '*' | '+' | '/' | '&' | '|' => { 
+            '*' | '+' | '/' | '&' | '|' => {
                 result.push(Token::Operator);
                 operator(&mut fst);
             },
@@ -76,9 +106,10 @@ pub fn tokens<I>(mut fst: Peekable<I>) -> Vec<Token>
             '}' => result.push(Token::CurlyBracketRight),
             ';' => result.push(Token::Semicolon),
             ',' => result.push(Token::Comma),
-            ' ' => {}, // space 
-            '\n' => {}, // space 
-            _ => { }, // space 
+            '.' => result.push(Token::Dot),
+            ' ' => {}, // space
+            '\n' => {}, // space
+            _ => { }, // space
         }
     }
     println!("{:#?}", result);
