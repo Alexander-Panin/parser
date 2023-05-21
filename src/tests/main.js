@@ -21,7 +21,7 @@ function foo() {
         const fn = () => { x = a+b; }
         const fn = () => (b,c) => { x = a+b; }
         foo.a.x(5,6);
-        foo.a().x(5,6);
+        return foo.a().x(5,6);
     }
 }
 const x = 5;

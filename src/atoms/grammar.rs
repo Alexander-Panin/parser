@@ -38,6 +38,7 @@ pub enum Token {
     New,
     Number,
     Operator,
+    Return,
     Statement,
     Semicolon,
     TermMath,
@@ -141,6 +142,7 @@ pub fn token_tree() -> HashMap<Token, Rc<Node>> {
             | Class, Variable, ClassBody, Statement
             | If, IfBody, Statement
             | While, WhileBody, Statement
+            | Return, Expr, ClosingExpr, Statement
             | Const, Assignment, Statement 
             | Let, Assignment, Statement
             | Var, Assignment, Statement

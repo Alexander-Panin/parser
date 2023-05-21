@@ -1,1 +1,1 @@
-function foo(a,b) { x = a+b; } 
+function foo(a,b) { return a+b; } 
