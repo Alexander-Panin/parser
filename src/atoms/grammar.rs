@@ -64,43 +64,6 @@ pub fn token_tree() -> HashMap<Token, Rc<Node>> {
     use Token::{FunctionBody, IfBody, WhileBody, ClosingExpr};
     use Token::{ClassBody, VariableBody, Method};
 
-    let lambda = HashMap::from([
-        (Lambda2, tree![
-            | BracketRight, FatArrow, LambdaBody
-            | Variable, Lambda3
-            | BracketLeftBack, ExprMath
-        ]),
-        (Lambda3, tree![
-            | BracketRight, FatArrow, LambdaBody
-            | Comma, Variable, CallTerm, BracketRight, FatArrow, LambdaBody
-            | VariableBack, BracketLeftBack, ExprMath
-        ]),
-        (LambdaBody, tree![
-            | CurlyBracketLeft, Statement, CurlyBracketRight
-            | Expr
-            | Never
-        ]),
-        (BracketLeftBack, tree![
-            | Always 
-        ]),
-        (VariableBack, tree![
-            | Always
-        ]),
-    ]);
-    let call = HashMap::from([
-        (Call, tree![
-            | BracketLeft, CallBody
-        ]),
-        (CallBody, tree![
-            | BracketRight
-            | Expr, CallTerm, BracketRight
-            | Never
-        ]),
-        (CallTerm, tree![
-            | Comma, Expr, CallTerm
-        ]),
-    ]);
-
     let mut expr = HashMap::from([
         (ExprMath, tree![
             | BracketLeft, ExprMath, BracketRight, TermMath
@@ -172,6 +135,43 @@ pub fn token_tree() -> HashMap<Token, Rc<Node>> {
         ]),
         (ClosingExpr, tree![
             | Semicolon
+        ]),
+    ]);
+    
+    let lambda = HashMap::from([
+        (Lambda2, tree![
+            | BracketRight, FatArrow, LambdaBody
+            | Variable, Lambda3
+            | BracketLeftBack, ExprMath
+        ]),
+        (Lambda3, tree![
+            | BracketRight, FatArrow, LambdaBody
+            | Comma, Variable, CallTerm, BracketRight, FatArrow, LambdaBody
+            | VariableBack, BracketLeftBack, ExprMath
+        ]),
+        (LambdaBody, tree![
+            | CurlyBracketLeft, Statement, CurlyBracketRight
+            | Expr
+            | Never
+        ]),
+        (BracketLeftBack, tree![
+            | Always 
+        ]),
+        (VariableBack, tree![
+            | Always
+        ]),
+    ]);
+    let call = HashMap::from([
+        (Call, tree![
+            | BracketLeft, CallBody
+        ]),
+        (CallBody, tree![
+            | BracketRight
+            | Expr, CallTerm, BracketRight
+            | Never
+        ]),
+        (CallTerm, tree![
+            | Comma, Expr, CallTerm
         ]),
     ]);
     expr.extend(lambda);
