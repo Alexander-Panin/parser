@@ -1,16 +1,19 @@
 use std::iter::{Peekable};
 use crate::atoms::{Token};
 
-const KEYWORDS: [(&str, Token); 11] = [
+const KEYWORDS: [(&str, Token); 14] = [
     ("await", Token::Await),
     ("class", Token::Class),
     ("const", Token::Const),
     ("extends", Token::Extends),
+    ("false", Token::False),
     ("function", Token::Function),
     ("if", Token::If),
     ("let", Token::Let),
     ("new", Token::New),
+    ("null", Token::Null),
     ("return", Token::Return),
+    ("true", Token::True),
     ("var", Token::Var),
     ("while", Token::While),
 ];
@@ -27,7 +30,7 @@ fn operator<I>(fst: &mut Peekable<I>)
     }
 }
 
-
+// todo fix plz real numbers
 fn number<I>(fst: &mut Peekable<I>)
     where
         I: Iterator<Item=u8> {
@@ -40,6 +43,35 @@ fn number<I>(fst: &mut Peekable<I>)
     }
 }
 
+fn dots<I>(fst: &mut Peekable<I>) -> Token
+    where
+        I: Iterator<Item=u8> {
+    let mut k = 0;
+    for _ in 0..2 {
+        if let Some(&ch) = fst.peek() {
+            match ch as char {
+                '.' =>  { k += 1; },
+                _ => break,
+            }
+            fst.next();
+        }
+    }
+    return [Token::Dot, Token::Dot2, Token::Dot3][k];
+}
+
+// todo need to fix for quoting 
+fn string<I>(fst: &mut Peekable<I>, x: char)
+    where
+        I: Iterator<Item=u8> {
+    while let Some(ch) = fst.next() {
+        match ch as char {
+            q if q == x => break,
+            _ => { },
+        }
+    }
+}
+
+// todo add plz match by underscore
 fn variable<I>(fst: &mut Peekable<I>, x: char) -> Token
     where
         I: Iterator<Item=u8> {
@@ -101,13 +133,22 @@ pub fn tokens<I>(mut fst: Peekable<I>) -> Vec<Token>
                 result.push(Token::Operator);
                 operator(&mut fst);
             },
+            '"' | '\'' => {
+                result.push(Token::String);
+                string(&mut fst, ch as char);
+            },
             '(' => result.push(Token::BracketLeft),
             ')' => result.push(Token::BracketRight),
             '{' => result.push(Token::CurlyBracketLeft),
             '}' => result.push(Token::CurlyBracketRight),
+            '[' => result.push(Token::SquareBracketLeft),
+            ']' => result.push(Token::SquareBracketRight),
             ';' => result.push(Token::Semicolon),
+            ':' => result.push(Token::Colon),
             ',' => result.push(Token::Comma),
-            '.' => result.push(Token::Dot),
+            '.' => {
+                result.push(dots(&mut fst));
+            },
             ' ' => {}, // space
             '\n' => {}, // space
             _ => { }, // space

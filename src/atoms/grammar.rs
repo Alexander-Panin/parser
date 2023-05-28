@@ -4,48 +4,68 @@ use std::collections::HashMap;
 #[derive(Default, PartialEq, PartialOrd, Clone, Copy, Debug, Eq, Hash)]
 pub enum Token {
     Assignment,
-    AssignmentOrCall,
     Await,
     BracketLeft,
     BracketRight,
-    Call,
-    CallBody,
-    CallTerm,
     Class,
-    ClassBody,
-    ClosingExpr,
-    Const,
+    Colon,
     Comma,
+    Const,
     CurlyBracketLeft,
     CurlyBracketRight,
     Dot,
-    DotTerm,
+    Dot2,
+    Dot3,
     EqualSign,
-    Expr,
-    ExprMath,
     Extends,
+    False,
     FatArrow,
     Function,
-    FunctionBody,
     If,
-    IfBody,
-    Lambda2,
-    Lambda3,
-    LambdaBody,
     Let,
-    Method,
     Minus,
     New,
+    Null,
     Number,
     Operator,
     Return,
-    Statement,
     Semicolon,
-    TermMath,
+    SquareBracketLeft,
+    SquareBracketRight,
+    String,
+    True,
     Var,
     Variable,
-    VariableBody,
     While,
+
+    // compound
+    Array,
+    AssignmentOrCall,
+    Call,
+    CallBody,
+    CallTerm,
+    ClassBody,
+    ClosingExpr,
+    Expr,
+    ExprMath,
+    FunctionBody,
+    IfBody,
+    Lambda,
+    Lambda2,
+    LambdaBody,
+    Method,
+    Object,
+    SpreadArray,
+    SpreadObject,
+    Statement,
+    ArrayBody,
+    TermArray,
+    TermDot,
+    TermMath,
+    ObjectBody,
+    ObjectValue,
+    TermObject,
+    VariableBody,
     WhileBody,
 
     // Backtracing 
@@ -58,11 +78,55 @@ pub enum Token {
 }
 
 pub fn token_tree() -> HashMap<Token, Rc<Node>> {
-    use Token::{Expr, TermMath, Assignment, ExprMath, Statement };
-    use Token::{Call, CallTerm, CallBody, AssignmentOrCall, DotTerm};
-    use Token::{Lambda2, Lambda3, LambdaBody, BracketLeftBack, VariableBack};
+    use Token::{Expr, TermMath, Assignment, ExprMath, Statement};
+    use Token::{Call, CallTerm, CallBody, AssignmentOrCall, TermDot};
+    use Token::{Lambda, Lambda2, LambdaBody, BracketLeftBack, VariableBack};
     use Token::{FunctionBody, IfBody, WhileBody, ClosingExpr};
     use Token::{ClassBody, VariableBody, Method};
+    use Token::{Object, ObjectBody, TermObject, Array, ArrayBody, TermArray};
+    use Token::{SpreadObject, SpreadArray, ObjectValue};
+
+    let literals = HashMap::from([
+        (Object, tree![
+            | ObjectBody, CurlyBracketRight  
+            | Never
+        ]),
+        (ObjectBody, tree![
+            | Variable, ObjectValue
+            | String, ObjectValue
+            | SquareBracketLeft, Variable, SquareBracketRight, ObjectValue
+            | Dot3, SpreadObject
+        ]),
+        (ObjectValue, tree![
+            | Colon, Expr, TermObject
+            | Never
+        ]),
+        (TermObject, tree![
+            | Comma, ObjectBody
+        ]),
+        (SpreadObject, tree![
+            | Variable, TermObject
+            | CurlyBracketLeft, Object, TermObject
+            | Never
+        ]),
+        (Array, tree![
+            | SquareBracketRight
+            | ArrayBody, SquareBracketRight
+            | Never
+        ]),
+        (ArrayBody, tree![
+            | Dot3, SpreadArray
+            | Expr, TermArray
+        ]),
+        (TermArray, tree![
+            | Comma, ArrayBody
+        ]),
+        (SpreadArray, tree![
+            | SquareBracketLeft, Array, TermArray
+            | Variable, TermArray
+            | Never
+        ]),
+    ]);
 
     let mut expr = HashMap::from([
         (ExprMath, tree![
@@ -70,6 +134,10 @@ pub fn token_tree() -> HashMap<Token, Rc<Node>> {
             | Minus, ExprMath
             | Function, FunctionBody
             | Number, TermMath
+            | String, TermMath
+            | Null, TermMath
+            | True, TermMath
+            | False, TermMath
             | Await, VariableBody
             | New, VariableBody
             | VariableBody
@@ -85,8 +153,10 @@ pub fn token_tree() -> HashMap<Token, Rc<Node>> {
             | Dot, ExprMath
         ]),
         
-        (Expr, tree![ // <- Lambda
-            | BracketLeft, Lambda2
+        (Expr, tree![ 
+            | BracketLeft, Lambda
+            | CurlyBracketLeft, Object
+            | SquareBracketLeft, Array
             | ExprMath
         ]),
         (Assignment, tree![
@@ -97,8 +167,8 @@ pub fn token_tree() -> HashMap<Token, Rc<Node>> {
             | EqualSign, Expr, ClosingExpr
             | Call, ClosingExpr
         ]),
-        (DotTerm, tree![
-            | Dot, Variable, Call, DotTerm
+        (TermDot, tree![
+            | Dot, Variable, Call, TermDot
         ]),
         (Statement, tree![
             | Function, Variable, FunctionBody, Statement
@@ -109,7 +179,7 @@ pub fn token_tree() -> HashMap<Token, Rc<Node>> {
             | Const, Assignment, Statement 
             | Let, Assignment, Statement
             | Var, Assignment, Statement
-            | Variable, DotTerm, AssignmentOrCall, Statement 
+            | Variable, TermDot, AssignmentOrCall, Statement 
         ]),
         (ClassBody, tree![
             | Extends, Variable, CurlyBracketLeft, Method, CurlyBracketRight 
@@ -123,6 +193,7 @@ pub fn token_tree() -> HashMap<Token, Rc<Node>> {
             | Call, CurlyBracketLeft, Statement, CurlyBracketRight
             | Never
         ]),
+        // todo if without curly brackets
         (IfBody, tree![
             | BracketLeft, Expr, BracketRight,
                 CurlyBracketLeft, Statement, CurlyBracketRight
@@ -137,14 +208,15 @@ pub fn token_tree() -> HashMap<Token, Rc<Node>> {
             | Semicolon
         ]),
     ]);
-    
+
+    // TODO cover plz lambda with out brackets around single param 
     let lambda = HashMap::from([
-        (Lambda2, tree![
+        (Lambda, tree![
             | BracketRight, FatArrow, LambdaBody
-            | Variable, Lambda3
+            | Variable, Lambda2
             | BracketLeftBack, ExprMath
         ]),
-        (Lambda3, tree![
+        (Lambda2, tree![
             | BracketRight, FatArrow, LambdaBody
             | Comma, Variable, CallTerm, BracketRight, FatArrow, LambdaBody
             | VariableBack, BracketLeftBack, ExprMath
@@ -176,6 +248,7 @@ pub fn token_tree() -> HashMap<Token, Rc<Node>> {
     ]);
     expr.extend(lambda);
     expr.extend(call);
+    expr.extend(literals);
     expr
 }
 
