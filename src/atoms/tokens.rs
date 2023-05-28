@@ -56,14 +56,14 @@ fn dots<I>(fst: &mut Peekable<I>) -> Token
             fst.next();
         }
     }
-    return [Token::Dot, Token::Dot2, Token::Dot3][k];
+    [Token::Dot, Token::Dot2, Token::Dot3][k]
 }
 
 // todo need to fix for quoting 
 fn string<I>(fst: &mut Peekable<I>, x: char)
     where
         I: Iterator<Item=u8> {
-    while let Some(ch) = fst.next() {
+    for ch in fst.by_ref() {
         match ch as char {
             q if q == x => break,
             _ => { },
