@@ -22,6 +22,8 @@ pub enum Token {
     FatArrow,
     Function,
     If,
+    Instanceof,
+    In,
     Let,
     Minus,
     New,
@@ -34,6 +36,8 @@ pub enum Token {
     SquareBracketRight,
     String,
     True,
+    Typeof,
+    Undefined,
     Var,
     Variable,
     While,
@@ -50,6 +54,7 @@ pub enum Token {
     ExprMath,
     FunctionBody,
     IfBody,
+    IfHeader,
     Lambda,
     Lambda2,
     LambdaBody,
@@ -81,11 +86,11 @@ pub fn token_tree() -> HashMap<Token, Rc<Node>> {
     use Token::{Expr, TermMath, Assignment, ExprMath, Statement};
     use Token::{Call, CallTerm, CallBody, AssignmentOrCall, TermDot};
     use Token::{Lambda, Lambda2, LambdaBody, BracketLeftBack, VariableBack};
-    use Token::{FunctionBody, IfBody, WhileBody, ClosingExpr};
+    use Token::{FunctionBody, IfBody, IfHeader, WhileBody, ClosingExpr};
     use Token::{ClassBody, VariableBody, Method};
     use Token::{Object, ObjectBody, TermObject, Array, ArrayBody, TermArray};
     use Token::{SpreadObject, SpreadArray, ObjectValue};
-
+    
     let literals = HashMap::from([
         (Object, tree![
             | ObjectBody, CurlyBracketRight  
@@ -136,10 +141,12 @@ pub fn token_tree() -> HashMap<Token, Rc<Node>> {
             | Number, TermMath
             | String, TermMath
             | Null, TermMath
+            | Undefined, TermMath
             | True, TermMath
             | False, TermMath
             | Await, VariableBody
             | New, VariableBody
+            | Typeof, VariableBody
             | VariableBody
             | Never
         ]),
@@ -150,6 +157,8 @@ pub fn token_tree() -> HashMap<Token, Rc<Node>> {
         (TermMath, tree![
             | Minus, ExprMath
             | Operator, ExprMath
+            | Instanceof, ExprMath
+            | In, Expr
             | Dot, ExprMath
         ]),
         
@@ -173,7 +182,7 @@ pub fn token_tree() -> HashMap<Token, Rc<Node>> {
         (Statement, tree![
             | Function, Variable, FunctionBody, Statement
             | Class, Variable, ClassBody, Statement
-            | If, IfBody, Statement
+            | If, IfHeader, Statement
             | While, WhileBody, Statement
             | Return, Expr, ClosingExpr, Statement
             | Const, Assignment, Statement 
@@ -193,12 +202,15 @@ pub fn token_tree() -> HashMap<Token, Rc<Node>> {
             | Call, CurlyBracketLeft, Statement, CurlyBracketRight
             | Never
         ]),
-        // todo if without curly brackets
-        (IfBody, tree![
-            | BracketLeft, Expr, BracketRight,
-                CurlyBracketLeft, Statement, CurlyBracketRight
+        (IfHeader, tree![
+            | BracketLeft, Expr, BracketRight, IfBody
             | Never
         ]),
+        (IfBody, tree![
+            | CurlyBracketLeft, Statement, CurlyBracketRight
+            | Statement
+        ]),
+        // todo `while` without curly brackets
         (WhileBody, tree![
             | BracketLeft, Expr, BracketRight,
                 CurlyBracketLeft, Statement, CurlyBracketRight

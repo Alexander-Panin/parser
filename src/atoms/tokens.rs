@@ -1,7 +1,7 @@
 use std::iter::{Peekable};
 use crate::atoms::{Token};
 
-const KEYWORDS: [(&str, Token); 14] = [
+const KEYWORDS: [(&str, Token); 18] = [
     ("await", Token::Await),
     ("class", Token::Class),
     ("const", Token::Const),
@@ -9,13 +9,18 @@ const KEYWORDS: [(&str, Token); 14] = [
     ("false", Token::False),
     ("function", Token::Function),
     ("if", Token::If),
+    ("in", Token::In),
+    ("instanceof", Token::Instanceof),
     ("let", Token::Let),
     ("new", Token::New),
     ("null", Token::Null),
     ("return", Token::Return),
     ("true", Token::True),
+    ("typeof", Token::Typeof),
+    ("undefined", Token::Undefined),
     ("var", Token::Var),
     ("while", Token::While),
+
 ];
 
 // todo: not fully covered operator topic 

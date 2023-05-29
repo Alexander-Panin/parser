@@ -9,6 +9,7 @@ use double_entry::{Audit};
 use atoms::{token_tree, tokens, Token};
 
 fn audit(matcher: Vec<Token>, filename: Display) {
+    // if format!("{:?}", filename) != "\"./src/tests/foo.js\"" { return; }
     let mut state = Audit {
         matcher,
         tt: token_tree(),
@@ -16,7 +17,8 @@ fn audit(matcher: Vec<Token>, filename: Display) {
     };
     state.double_entry(state.tt.get(&Token::Statement).unwrap().clone());
     state.audit();
-    println!("{:?} done {:?}", filename, state.registry);
+    println!("{:?} done {:?} [matcher size {}]", 
+        filename, state.registry, state.matcher.len());
 }
 
 fn main() {
