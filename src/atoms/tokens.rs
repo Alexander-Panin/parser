@@ -25,6 +25,34 @@ const KEYWORDS: [(&str, Token); 21] = [
     ("while", Token::While),
 ];
 
+fn comment<I>(fst: &mut Peekable<I>) -> Token
+    where
+        I: Iterator<Item=u8> {
+    if let Some(&ch) = fst.peek() {
+        match ch as char {
+            '/' => {  
+                while let Some(ch2) = fst.next() {
+                    match ch2 as char {
+                        '\n' => { return Token::Comment },
+                        _ => { }, 
+                    }
+                }
+            },
+            '*' => {
+                let mut prev = b'-';
+                while let Some(ch2) = fst.next() {
+                    match ch2 as char {
+                        '/' if prev == b'*' => { return Token::Comment },
+                        _ => { prev = ch2 }, 
+                    }
+                }
+            }
+            _ => { },
+        }
+    }
+    Token::Operator
+}
+
 // todo: not fully covered operator topic 
 fn operator<I>(fst: &mut Peekable<I>, x: char) -> Token
     where
@@ -138,7 +166,13 @@ pub fn tokens<I>(mut fst: Peekable<I>) -> Vec<Token>
                 result.push(operator_equal(&mut fst));
             },
             '-' => result.push(Token::Minus),
-            '*' | '+' | '/' | '&' | '|' => {
+            '/' => {
+                let t = comment(&mut fst);
+                if t != Token::Comment {
+                    result.push(t);
+                }
+            },
+            '*' | '+' | '&' | '|' => {
                 result.push(operator(&mut fst, ch as char));
             },
             '"' | '\'' => {

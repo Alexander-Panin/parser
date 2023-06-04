@@ -85,6 +85,9 @@ pub enum Token {
     VariableBack,
     Always,
 
+    // Auxiliary
+    Comment,
+
     #[default]
     Never,
 }
