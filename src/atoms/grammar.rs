@@ -4,6 +4,7 @@ use std::collections::HashMap;
 #[derive(Default, PartialEq, PartialOrd, Clone, Copy, Debug, Eq, Hash)]
 pub enum Token {
     Assignment,
+    As,
     Await,
     BracketLeft,
     BracketRight,
@@ -20,8 +21,10 @@ pub enum Token {
     Extends,
     False,
     FatArrow,
+    From,
     Function,
     If,
+    Import,
     Instanceof,
     In,
     Let,
@@ -55,6 +58,9 @@ pub enum Token {
     FunctionBody,
     IfBody,
     IfHeader,
+    ImportHeader,
+    ImportExpr,
+    ImportTerm,
     Lambda,
     Lambda2,
     LambdaBody,
@@ -90,47 +96,22 @@ pub fn token_tree() -> HashMap<Token, Rc<Node>> {
     use Token::{ClassBody, VariableBody, Method};
     use Token::{Object, ObjectBody, TermObject, Array, ArrayBody, TermArray};
     use Token::{SpreadObject, SpreadArray, ObjectValue};
-    
-    let literals = HashMap::from([
-        (Object, tree![
-            | ObjectBody, CurlyBracketRight  
+    use Token::{ImportHeader, ImportExpr, ImportTerm};
+
+    let import = HashMap::from([
+        (ImportHeader, tree![
+            | String, ClosingExpr
+            | ImportExpr, From, String, ClosingExpr 
             | Never
         ]),
-        (ObjectBody, tree![
-            | Variable, ObjectValue
-            | String, ObjectValue
-            | SquareBracketLeft, Variable, SquareBracketRight, ObjectValue
-            | Dot3, SpreadObject
-        ]),
-        (ObjectValue, tree![
-            | Colon, Expr, TermObject
-            | Never
-        ]),
-        (TermObject, tree![
-            | Comma, ObjectBody
-        ]),
-        (SpreadObject, tree![
-            | Variable, TermObject
-            | CurlyBracketLeft, Object, TermObject
-            | Never
-        ]),
-        (Array, tree![
-            | SquareBracketRight
-            | ArrayBody, SquareBracketRight
-            | Never
-        ]),
-        (ArrayBody, tree![
-            | Dot3, SpreadArray
-            | Expr, TermArray
-        ]),
-        (TermArray, tree![
-            | Comma, ArrayBody
-        ]),
-        (SpreadArray, tree![
-            | SquareBracketLeft, Array, TermArray
-            | Variable, TermArray
-            | Never
-        ]),
+        (ImportExpr, tree![
+            | CurlyBracketLeft, Variable, ImportTerm, CurlyBracketRight
+            | Variable, ImportTerm
+        ]), 
+        (ImportTerm, tree![
+            | Comma, ImportExpr
+            | As, Variable, ImportTerm
+        ]), 
     ]);
 
     let mut expr = HashMap::from([
@@ -180,6 +161,7 @@ pub fn token_tree() -> HashMap<Token, Rc<Node>> {
             | Dot, Variable, Call, TermDot
         ]),
         (Statement, tree![
+            | Import, ImportHeader, Statement
             | Function, Variable, FunctionBody, Statement
             | Class, Variable, ClassBody, Statement
             | If, IfHeader, Statement
@@ -218,6 +200,48 @@ pub fn token_tree() -> HashMap<Token, Rc<Node>> {
         ]),
         (ClosingExpr, tree![
             | Semicolon
+        ]),
+    ]);
+
+    let literals = HashMap::from([
+        (Object, tree![
+            | ObjectBody, CurlyBracketRight  
+            | Never
+        ]),
+        (ObjectBody, tree![
+            | Variable, ObjectValue
+            | String, ObjectValue
+            | SquareBracketLeft, Variable, SquareBracketRight, ObjectValue
+            | Dot3, SpreadObject
+        ]),
+        (ObjectValue, tree![
+            | Colon, Expr, TermObject
+            | Never
+        ]),
+        (TermObject, tree![
+            | Comma, ObjectBody
+        ]),
+        (SpreadObject, tree![
+            | Variable, TermObject
+            | CurlyBracketLeft, Object, TermObject
+            | Never
+        ]),
+        (Array, tree![
+            | SquareBracketRight
+            | ArrayBody, SquareBracketRight
+            | Never
+        ]),
+        (ArrayBody, tree![
+            | Dot3, SpreadArray
+            | Expr, TermArray
+        ]),
+        (TermArray, tree![
+            | Comma, ArrayBody
+        ]),
+        (SpreadArray, tree![
+            | SquareBracketLeft, Array, TermArray
+            | Variable, TermArray
+            | Never
         ]),
     ]);
 
@@ -261,6 +285,7 @@ pub fn token_tree() -> HashMap<Token, Rc<Node>> {
     expr.extend(lambda);
     expr.extend(call);
     expr.extend(literals);
+    expr.extend(import);
     expr
 }
 
