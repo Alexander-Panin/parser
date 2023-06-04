@@ -26,15 +26,17 @@ const KEYWORDS: [(&str, Token); 21] = [
 ];
 
 // todo: not fully covered operator topic 
-fn operator<I>(fst: &mut Peekable<I>)
+fn operator<I>(fst: &mut Peekable<I>, x: char) -> Token
     where
         I: Iterator<Item=u8> {
     if let Some(&ch) = fst.peek() {
         match ch as char {
             '*' | '&' | '|' => { fst.next(); },
+            _ if x == '*' => { return Token::Star; },
             _ => { },
         }
     }
+    Token::Operator
 }
 
 // todo fix plz real numbers
@@ -137,8 +139,7 @@ pub fn tokens<I>(mut fst: Peekable<I>) -> Vec<Token>
             },
             '-' => result.push(Token::Minus),
             '*' | '+' | '/' | '&' | '|' => {
-                result.push(Token::Operator);
-                operator(&mut fst);
+                result.push(operator(&mut fst, ch as char));
             },
             '"' | '\'' => {
                 result.push(Token::String);

@@ -34,6 +34,7 @@ pub enum Token {
     Number,
     Operator,
     Return,
+    Star,
     Semicolon,
     SquareBracketLeft,
     SquareBracketRight,
@@ -107,6 +108,7 @@ pub fn token_tree() -> HashMap<Token, Rc<Node>> {
         (ImportExpr, tree![
             | CurlyBracketLeft, Variable, ImportTerm, CurlyBracketRight
             | Variable, ImportTerm
+            | Star, ImportTerm
         ]), 
         (ImportTerm, tree![
             | Comma, ImportExpr
@@ -137,6 +139,7 @@ pub fn token_tree() -> HashMap<Token, Rc<Node>> {
         ]),
         (TermMath, tree![
             | Minus, ExprMath
+            | Star, ExprMath
             | Operator, ExprMath
             | Instanceof, ExprMath
             | In, Expr
