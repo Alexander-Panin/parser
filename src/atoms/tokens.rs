@@ -30,11 +30,11 @@ fn comment<I>(fst: &mut Peekable<I>) -> Token
         I: Iterator<Item=u8> {
     if let Some(&ch) = fst.peek() {
         match ch as char {
-            '/' => {  
+            '/' => {
                 while let Some(ch2) = fst.next() {
                     match ch2 as char {
                         '\n' => { return Token::Comment },
-                        _ => { }, 
+                        _ => { },
                     }
                 }
             },
@@ -43,7 +43,7 @@ fn comment<I>(fst: &mut Peekable<I>) -> Token
                 while let Some(ch2) = fst.next() {
                     match ch2 as char {
                         '/' if prev == b'*' => { return Token::Comment },
-                        _ => { prev = ch2 }, 
+                        _ => { prev = ch2 },
                     }
                 }
             }
@@ -53,7 +53,7 @@ fn comment<I>(fst: &mut Peekable<I>) -> Token
     Token::Operator
 }
 
-// todo: not fully covered operator topic 
+// todo: not fully covered operator topic
 fn operator<I>(fst: &mut Peekable<I>, x: char) -> Token
     where
         I: Iterator<Item=u8> {
@@ -96,7 +96,7 @@ fn dots<I>(fst: &mut Peekable<I>) -> Token
     [Token::Dot, Token::Dot2, Token::Dot3][k]
 }
 
-// todo need to fix for quoting 
+// todo need to fix for quoting
 fn string<I>(fst: &mut Peekable<I>, x: char)
     where
         I: Iterator<Item=u8> {
@@ -187,6 +187,7 @@ pub fn tokens<I>(mut fst: Peekable<I>) -> Vec<Token>
             ']' => result.push(Token::SquareBracketRight),
             ';' => result.push(Token::Semicolon),
             ':' => result.push(Token::Colon),
+            '?' => result.push(Token::QuestionMark),
             ',' => result.push(Token::Comma),
             '.' => {
                 result.push(dots(&mut fst));

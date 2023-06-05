@@ -33,6 +33,7 @@ pub enum Token {
     Null,
     Number,
     Operator,
+    QuestionMark,
     Return,
     Star,
     Semicolon,
@@ -144,6 +145,7 @@ pub fn token_tree() -> HashMap<Token, Rc<Node>> {
             | Minus, ExprMath
             | Star, ExprMath
             | Operator, ExprMath
+            | QuestionMark, Expr, Colon, Expr
             | Instanceof, ExprMath
             | In, Expr
             | Dot, ExprMath
