@@ -32,16 +32,15 @@ where
     if let Some(&ch) = fst.peek() {
         match ch as char {
             '/' => {
-                while let Some(ch2) = fst.next() {
-                    match ch2 as char {
-                        '\n' => return Token::Comment,
-                        _ => {}
+                for ch2 in fst.by_ref() {
+                    if ch2 as char == '\n' {
+                        return Token::Comment;
                     }
                 }
             }
             '*' => {
                 let mut prev = b'-';
-                while let Some(ch2) = fst.next() {
+                for ch2 in fst.by_ref() {
                     match ch2 as char {
                         '/' if prev == b'*' => return Token::Comment,
                         _ => prev = ch2,

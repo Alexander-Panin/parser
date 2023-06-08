@@ -20,7 +20,7 @@ fn audit(matcher: Vec<Token>, filename: Display) {
     println!(
         "{:?} {} {:?} [matcher size {}]",
         filename,
-        if state.matcher.len() == 0 {
+        if state.matcher.is_empty() {
             "ok"
         } else {
             "NOT OK"
