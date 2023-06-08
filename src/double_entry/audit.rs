@@ -1,7 +1,7 @@
-use std::rc::Rc;
-use std::collections::HashMap;
-use crate::atoms::{Token, Node, tree_length};
+use crate::atoms::{tree_length, Node, Token};
 use crate::registry::{Registry, ID};
+use std::collections::HashMap;
+use std::rc::Rc;
 
 #[derive(Default, PartialEq, Debug)]
 pub struct Audit {
@@ -15,7 +15,9 @@ impl Audit {
     pub fn double_entry(&mut self, node: Rc<Node>) {
         let t = self.registry.append(node.clone());
         let n = tree_length(Some(node));
-        for _ in 0..n { self.queue.push(t); }
+        for _ in 0..n {
+            self.queue.push(t);
+        }
     }
 
     pub fn audit(&mut self) {
@@ -35,7 +37,9 @@ impl Audit {
 
     fn booked(&mut self, t: ID, token: Token) -> bool {
         let r = self.tt.get(&token);
-        if r.is_none() { return false; }
+        if r.is_none() {
+            return false;
+        }
         self.double_entry(r.cloned().unwrap());
         self.boost_entry(t);
         self.backtrace(token);
@@ -52,14 +56,16 @@ impl Audit {
 
     fn audit_step(&mut self, t: ID, ok: bool) {
         let e = self.registry.get_mut(t).unwrap();
-        if e.val == Token::Never { return; }
-        let x = if ok { 
-            e.ok.as_ref().cloned() 
-        } else { 
-            e.err.as_ref().cloned() 
+        if e.val == Token::Never {
+            return;
+        }
+        let x = if ok {
+            e.ok.as_ref().cloned()
+        } else {
+            e.err.as_ref().cloned()
         };
-        if x.is_none() { 
-            self.registry.erase(t); 
+        if x.is_none() {
+            self.registry.erase(t);
             return;
         }
         *e = x.unwrap();
@@ -76,10 +82,11 @@ impl Audit {
 
     fn approved(&mut self, t: ID) -> bool {
         let x = self.registry.get(t).as_ref().map(|n| n.val);
-        let y = self.matcher.last().cloned(); 
-        let result = x == y; 
-        if result { self.matcher.pop(); }
+        let y = self.matcher.last().cloned();
+        let result = x == y;
+        if result {
+            self.matcher.pop();
+        }
         result
     }
 }
-

@@ -1,5 +1,5 @@
-use std::iter::{Peekable};
-use crate::atoms::{Token};
+use crate::atoms::Token;
+use std::iter::Peekable;
 
 const KEYWORDS: [(&str, Token); 21] = [
     ("as", Token::As),
@@ -26,28 +26,29 @@ const KEYWORDS: [(&str, Token); 21] = [
 ];
 
 fn comment<I>(fst: &mut Peekable<I>) -> Token
-    where
-        I: Iterator<Item=u8> {
+where
+    I: Iterator<Item = u8>,
+{
     if let Some(&ch) = fst.peek() {
         match ch as char {
             '/' => {
                 while let Some(ch2) = fst.next() {
                     match ch2 as char {
-                        '\n' => { return Token::Comment },
-                        _ => { },
+                        '\n' => return Token::Comment,
+                        _ => {}
                     }
                 }
-            },
+            }
             '*' => {
                 let mut prev = b'-';
                 while let Some(ch2) = fst.next() {
                     match ch2 as char {
-                        '/' if prev == b'*' => { return Token::Comment },
-                        _ => { prev = ch2 },
+                        '/' if prev == b'*' => return Token::Comment,
+                        _ => prev = ch2,
                     }
                 }
             }
-            _ => { },
+            _ => {}
         }
     }
     Token::Operator
@@ -55,13 +56,18 @@ fn comment<I>(fst: &mut Peekable<I>) -> Token
 
 // todo: not fully covered operator topic
 fn operator<I>(fst: &mut Peekable<I>, x: char) -> Token
-    where
-        I: Iterator<Item=u8> {
+where
+    I: Iterator<Item = u8>,
+{
     if let Some(&ch) = fst.peek() {
         match ch as char {
-            '*' | '&' | '|' => { fst.next(); },
-            _ if x == '*' => { return Token::Star; },
-            _ => { },
+            '*' | '&' | '|' => {
+                fst.next();
+            }
+            _ if x == '*' => {
+                return Token::Star;
+            }
+            _ => {}
         }
     }
     Token::Operator
@@ -69,11 +75,12 @@ fn operator<I>(fst: &mut Peekable<I>, x: char) -> Token
 
 // todo fix plz real numbers
 fn number<I>(fst: &mut Peekable<I>)
-    where
-        I: Iterator<Item=u8> {
+where
+    I: Iterator<Item = u8>,
+{
     while let Some(&ch) = fst.peek() {
         match ch as char {
-            '0'..='9' => { },
+            '0'..='9' => {}
             _ => break,
         }
         fst.next();
@@ -81,13 +88,16 @@ fn number<I>(fst: &mut Peekable<I>)
 }
 
 fn dots<I>(fst: &mut Peekable<I>) -> Token
-    where
-        I: Iterator<Item=u8> {
+where
+    I: Iterator<Item = u8>,
+{
     let mut k = 0;
     for _ in 0..2 {
         if let Some(&ch) = fst.peek() {
             match ch as char {
-                '.' =>  { k += 1; },
+                '.' => {
+                    k += 1;
+                }
                 _ => break,
             }
             fst.next();
@@ -98,24 +108,26 @@ fn dots<I>(fst: &mut Peekable<I>) -> Token
 
 // todo need to fix for quoting
 fn string<I>(fst: &mut Peekable<I>, x: char)
-    where
-        I: Iterator<Item=u8> {
+where
+    I: Iterator<Item = u8>,
+{
     for ch in fst.by_ref() {
         match ch as char {
             q if q == x => break,
-            _ => { },
+            _ => {}
         }
     }
 }
 
 // todo add plz match by underscore
 fn variable<I>(fst: &mut Peekable<I>, x: char) -> Token
-    where
-        I: Iterator<Item=u8> {
+where
+    I: Iterator<Item = u8>,
+{
     let mut r = vec![x];
     while let Some(&ch) = fst.peek() {
         match ch as char {
-            'A'..='Z' | 'a'..='z' | '0'..='9' => { r.push(ch as char) },
+            'A'..='Z' | 'a'..='z' | '0'..='9' => r.push(ch as char),
             _ => break,
         }
         fst.next();
@@ -123,13 +135,17 @@ fn variable<I>(fst: &mut Peekable<I>, x: char) -> Token
     let s: String = r.iter().collect();
     let i = KEYWORDS.partition_point(|x| x.0 < &s);
     let ok = i != KEYWORDS.len() && KEYWORDS[i].0 == s;
-    if ok { KEYWORDS[i].1 } else { Token::Variable }
+    if ok {
+        KEYWORDS[i].1
+    } else {
+        Token::Variable
+    }
 }
 
-
 fn operator_equal<I>(fst: &mut Peekable<I>) -> Token
-    where
-        I: Iterator<Item=u8> {
+where
+    I: Iterator<Item = u8>,
+{
     if let Some(&ch) = fst.peek() {
         match ch as char {
             '=' => {
@@ -138,47 +154,48 @@ fn operator_equal<I>(fst: &mut Peekable<I>) -> Token
                     fst.next();
                 }
                 return Token::Operator;
-            },
+            }
             '>' => {
                 fst.next();
                 return Token::FatArrow;
-            },
-            _ => { },
+            }
+            _ => {}
         }
     }
     Token::EqualSign
 }
 
 pub fn tokens<I>(mut fst: Peekable<I>) -> Vec<Token>
-    where
-        I: Iterator<Item=u8> {
+where
+    I: Iterator<Item = u8>,
+{
     let mut result = vec![];
     while let Some(ch) = fst.next() {
         match ch as char {
             '0'..='9' => {
                 result.push(Token::Number);
                 number(&mut fst);
-            },
+            }
             'A'..='Z' | 'a'..='z' => {
                 result.push(variable(&mut fst, ch as char));
-            },
+            }
             '=' => {
                 result.push(operator_equal(&mut fst));
-            },
+            }
             '-' => result.push(Token::Minus),
             '/' => {
                 let t = comment(&mut fst);
                 if t != Token::Comment {
                     result.push(t);
                 }
-            },
+            }
             '*' | '+' | '&' | '|' => {
                 result.push(operator(&mut fst, ch as char));
-            },
+            }
             '"' | '\'' => {
                 result.push(Token::String);
                 string(&mut fst, ch as char);
-            },
+            }
             '(' => result.push(Token::BracketLeft),
             ')' => result.push(Token::BracketRight),
             '{' => result.push(Token::CurlyBracketLeft),
@@ -191,14 +208,12 @@ pub fn tokens<I>(mut fst: Peekable<I>) -> Vec<Token>
             ',' => result.push(Token::Comma),
             '.' => {
                 result.push(dots(&mut fst));
-            },
-            ' ' => {}, // space
-            '\n' => {}, // space
-            _ => { }, // space
+            }
+            ' ' => {}  // space
+            '\n' => {} // space
+            _ => {}    // space
         }
     }
     // println!("{:#?}", result);
     result
 }
-
-

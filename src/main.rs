@@ -2,11 +2,11 @@ use std::fs;
 use std::path::Display;
 
 mod atoms;
-mod registry;
 mod double_entry;
+mod registry;
 
-use double_entry::{Audit};
 use atoms::{token_tree, tokens, Token};
+use double_entry::Audit;
 
 fn audit(matcher: Vec<Token>, filename: Display) {
     // if format!("{:?}", filename) != "\"./src/tests/import.js\"" { return; }
@@ -17,30 +17,25 @@ fn audit(matcher: Vec<Token>, filename: Display) {
     };
     state.double_entry(state.tt.get(&Token::Statement).unwrap().clone());
     state.audit();
-    println!("{:?} {} {:?} [matcher size {}]", 
+    println!(
+        "{:?} {} {:?} [matcher size {}]",
         filename,
-        if state.matcher.len() == 0 { "ok" } else { "NOT OK" }, 
-        state.registry, 
-        state.matcher.len());
+        if state.matcher.len() == 0 {
+            "ok"
+        } else {
+            "NOT OK"
+        },
+        state.registry,
+        state.matcher.len()
+    );
 }
 
 fn main() {
     let files = fs::read_dir("./src/tests/").unwrap();
     for file in files {
-        let str = fs::read_to_string(file.as_ref().unwrap().path())
-            .expect("Unable to read file");
+        let str = fs::read_to_string(file.as_ref().unwrap().path()).expect("Unable to read file");
         let data = str.bytes().peekable();
         let v = tokens(data).into_iter().rev().collect();
         audit(v, file.unwrap().path().display());
     }
 }
-
-
-
-
-
-
-
-
-
-

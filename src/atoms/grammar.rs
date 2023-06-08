@@ -1,5 +1,5 @@
-use std::rc::Rc;
 use std::collections::HashMap;
+use std::rc::Rc;
 
 #[derive(Default, PartialEq, PartialOrd, Clone, Copy, Debug, Eq, Hash)]
 pub enum Token {
@@ -81,7 +81,7 @@ pub enum Token {
     VariableBody,
     WhileBody,
 
-    // Backtracing 
+    // Backtracing
     BracketLeftBack,
     VariableBack,
     Always,
@@ -93,6 +93,7 @@ pub enum Token {
     Never,
 }
 
+#[rustfmt::skip]
 pub fn token_tree() -> HashMap<Token, Rc<Node>> {
     use Token::{Expr, TermMath, Assignment, ExprMath, Statement};
     use Token::{Call, CallTerm, CallBody, AssignmentOrCall, TermDot};
@@ -303,5 +304,3 @@ pub struct Node {
     pub ok: Option<Rc<Node>>,
     pub err: Option<Rc<Node>>,
 }
-
-

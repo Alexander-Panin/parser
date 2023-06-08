@@ -3,8 +3,8 @@ macro_rules! tree {
         {
             let v = [ $( _path_ok!([$($x)*]), )* ];
             v.into_iter().rev().fold(None, |acc, path| {
-                let val = path.as_ref().unwrap().val; 
-                let ok = path.unwrap().ok.as_ref().cloned(); 
+                let val = path.as_ref().unwrap().val;
+                let ok = path.unwrap().ok.as_ref().cloned();
                 Some(Rc::new(
                     Node{ val, ok, err: acc }
                 ))
@@ -31,12 +31,12 @@ macro_rules! _path_ok {
                                 ok: None,
                                 err: None,
                             }
-                        )), 
+                        )),
                     }
                 ));
                 node = x;
             )*
             node
-        }    
-    }    
+        }
+    }
 }
