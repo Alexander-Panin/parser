@@ -51,40 +51,45 @@ pub enum Token {
 
     // compound
     Array,
-    AssignmentOrCall,
+    ArrayBuilder,
+    Block,
     Call,
-    CallBody,
+    CallBuilder,
     CallTerm,
-    ClassBody,
+    ClassBlock,
+    ClassBuilder,
     ClosingExpr,
+    Condition,
+    ExportBuilder,
     ExportExpr,
-    ExportHeader,
     ExportTerm,
     Expr,
     ExprMath,
-    FunctionBody,
-    IfBody,
-    IfHeader,
-    ImportHeader,
+    ExprMathBuilder,
+    FunctionBuilder,
+    IfBuilder,
+    ImportBuilder,
     ImportExpr,
     ImportTerm,
     Lambda,
     Lambda2,
-    LambdaBody,
+    LambdaBuilder,
     Method,
+    MethodBuilder,
     Object,
+    ObjectBuilder,
+    ObjectValue,
+    ReturnBuilder,
+    SideEffectBuilder,
     SpreadArray,
     SpreadObject,
     Statement,
-    ArrayBody,
     TermArray,
     TermDot,
     TermMath,
-    ObjectBody,
-    ObjectValue,
     TermObject,
-    VariableBody,
-    WhileBody,
+    VariableBuilder,
+    WhileBuilder,
 
     // Backtracing
     BracketLeftBack,
@@ -100,56 +105,36 @@ pub enum Token {
 
 #[rustfmt::skip]
 pub fn token_tree() -> HashMap<Token, Rc<Node>> {
-    use Token::{Expr, TermMath, Assignment, ExprMath, Statement};
-    use Token::{Call, CallTerm, CallBody, AssignmentOrCall, TermDot};
-    use Token::{Lambda, Lambda2, LambdaBody, BracketLeftBack, VariableBack};
-    use Token::{FunctionBody, IfBody, IfHeader, WhileBody, ClosingExpr};
-    use Token::{ClassBody, VariableBody, Method};
-    use Token::{Object, ObjectBody, TermObject, Array, ArrayBody, TermArray};
+    use Token::{Expr, TermMath, Assignment, ExprMath, ExprMathBuilder, Statement};
+    use Token::{Call, CallTerm, CallBuilder, TermDot, Block, Condition};
+    use Token::{Lambda, Lambda2, LambdaBuilder, BracketLeftBack, VariableBack};
+    use Token::{FunctionBuilder, IfBuilder, WhileBuilder, ClosingExpr};
+    use Token::{ReturnBuilder, SideEffectBuilder};
+    use Token::{ClassBuilder, ClassBlock, VariableBuilder, Method, MethodBuilder};
+    use Token::{Object, ObjectBuilder, TermObject, Array, ArrayBuilder, TermArray};
     use Token::{SpreadObject, SpreadArray, ObjectValue};
-    use Token::{ImportHeader, ImportExpr, ImportTerm};
-    use Token::{ExportHeader, ExportExpr, ExportTerm};
-
-    // todo maybe later: cover other cases 
-    let export = HashMap::from([
-        (ExportHeader, tree![
-            | Star, From, String, ClosingExpr
-            | CurlyBracketLeft, Variable, ExportTerm, CurlyBracketRight, ClosingExpr
-            | Default, ExportExpr
-            | ExportExpr
-        ]),
-        (ExportTerm, tree![
-            | Comma, Variable, ExportTerm
-        ]),
-        (ExportExpr, tree![
-            | Class, Variable, ClassBody
-            | Function, Variable, FunctionBody
-            | Class, Variable, ClassBody
-            | Const, Assignment
-            | Variable, ClosingExpr
-            | Never
-        ]),
-    ]);
+    use Token::{ImportBuilder, ImportExpr, ImportTerm};
+    use Token::{ExportBuilder, ExportExpr, ExportTerm};
 
     let mut expr = HashMap::from([
         (ExprMath, tree![
             | BracketLeft, ExprMath, BracketRight, TermMath
             | Minus, ExprMath
-            | Function, FunctionBody
+            | Function, FunctionBuilder
             | Number, TermMath
             | String, TermMath
             | Null, TermMath
             | Undefined, TermMath
             | True, TermMath
             | False, TermMath
-            | Await, VariableBody
-            | New, VariableBody
-            | Typeof, VariableBody
-            | VariableBody
+            | Await, VariableBuilder
+            | New, VariableBuilder
+            | Typeof, VariableBuilder
+            | VariableBuilder
             | Never
         ]),
-        (VariableBody, tree![
-            | Variable, Call, TermMath
+        (VariableBuilder, tree![
+            | Variable, TermDot, TermMath
             | Never
         ]),
         (TermMath, tree![
@@ -161,74 +146,112 @@ pub fn token_tree() -> HashMap<Token, Rc<Node>> {
             | In, Expr
             | Dot, ExprMath
         ]),
-
+        (ExprMathBuilder, tree![
+            | ExprMath
+            | Never
+        ]),
         (Expr, tree![
             | BracketLeft, Lambda
             | CurlyBracketLeft, Object
             | SquareBracketLeft, Array
-            | ExprMath
+            | ExprMathBuilder
         ]),
-        (Assignment, tree![
-            | Variable, EqualSign, Expr, ClosingExpr
-            | Never
-        ]),
-        (AssignmentOrCall, tree![
-            | EqualSign, Expr, ClosingExpr
-            | Call, ClosingExpr
-        ]),
-        (TermDot, tree![
-            | Dot, Variable, Call, TermDot
-        ]),
+
+        // todo `for loop` statement
         (Statement, tree![
-            | Import, ImportHeader, Statement
-            | Export, ExportHeader, Statement
-            | Function, Variable, FunctionBody, Statement
+            | Import, ImportBuilder, Statement
+            | Export, ExportBuilder, Statement
             | Const, Assignment, Statement
-            | Class, Variable, ClassBody, Statement
-            | If, IfHeader, Statement
-            | While, WhileBody, Statement
-            | Return, Expr, ClosingExpr, Statement
             | Let, Assignment, Statement
             | Var, Assignment, Statement
-            | Variable, TermDot, AssignmentOrCall, Statement
+            | Function, FunctionBuilder, Statement
+            | Class, ClassBuilder, Statement
+            | If, IfBuilder, Statement
+            | While, WhileBuilder, Statement
+            | Return, ReturnBuilder, Statement
+            | Variable, TermDot, SideEffectBuilder, Statement
         ]),
-        (ClassBody, tree![
+        (FunctionBuilder, tree![
+            | Variable, Call, Block
+            | Call, Block
+            | Never
+        ]),
+        (ClassBuilder, tree![
+            | Variable, ClassBlock
+            | CurlyBracketLeft, Method, CurlyBracketRight
+            | Never
+        ]),
+        (ClassBlock, tree![
             | Extends, Variable, CurlyBracketLeft, Method, CurlyBracketRight
             | CurlyBracketLeft, Method, CurlyBracketRight
             | Never
         ]),
         (Method, tree![
-            | Variable, FunctionBody, Method
+            | Variable, MethodBuilder
         ]),
-        (FunctionBody, tree![
-            | Call, CurlyBracketLeft, Statement, CurlyBracketRight
+        (MethodBuilder, tree![
+            | Call, Block, Method
             | Never
         ]),
-        (IfHeader, tree![
-            | BracketLeft, Expr, BracketRight, IfBody
+        // todo `if` without curly brackets
+        (IfBuilder, tree![
+            | Condition, Block
             | Never
-        ]),
-        (IfBody, tree![
-            | CurlyBracketLeft, Statement, CurlyBracketRight
-            | Statement
         ]),
         // todo `while` without curly brackets
-        (WhileBody, tree![
-            | BracketLeft, Expr, BracketRight,
-                CurlyBracketLeft, Statement, CurlyBracketRight
+        (WhileBuilder, tree![
+            | Condition, Block
             | Never
+        ]),
+        (Condition, tree![
+            | BracketLeft, Expr, BracketRight, Block
+            | Never
+        ]),
+        (Block, tree![
+            | CurlyBracketLeft, Statement, CurlyBracketRight
+            | Never
+        ]),
+        (ReturnBuilder, tree![
+            | Expr, ClosingExpr
+            | Never
+        ]),
+        (SideEffectBuilder, tree![
+            | EqualSign, Expr, ClosingExpr
+            | Call, ClosingExpr
+            | Never
+        ]),
+        (Assignment, tree![
+            | Variable, EqualSign, Expr, ClosingExpr
+            | Never
+        ]),
+        (TermDot, tree![
+            | Dot, Variable, Call, TermDot
         ]),
         (ClosingExpr, tree![
             | Semicolon
         ]),
     ]);
 
-    let literals = HashMap::from([
-        (Object, tree![
-            | ObjectBody, CurlyBracketRight
+    let call = HashMap::from([
+        (Call, tree![
+            | BracketLeft, CallBuilder
+        ]),
+        (CallBuilder, tree![
+            | BracketRight
+            | Expr, CallTerm, BracketRight
             | Never
         ]),
-        (ObjectBody, tree![
+        (CallTerm, tree![
+            | Comma, Expr, CallTerm
+        ]),
+    ]);
+
+    let literals = HashMap::from([
+        (Object, tree![
+            | ObjectBuilder, CurlyBracketRight
+            | Never
+        ]),
+        (ObjectBuilder, tree![
             | Variable, ObjectValue
             | String, ObjectValue
             | SquareBracketLeft, Variable, SquareBracketRight, ObjectValue
@@ -239,7 +262,7 @@ pub fn token_tree() -> HashMap<Token, Rc<Node>> {
             | Never
         ]),
         (TermObject, tree![
-            | Comma, ObjectBody
+            | Comma, ObjectBuilder
         ]),
         (SpreadObject, tree![
             | Variable, TermObject
@@ -248,15 +271,15 @@ pub fn token_tree() -> HashMap<Token, Rc<Node>> {
         ]),
         (Array, tree![
             | SquareBracketRight
-            | ArrayBody, SquareBracketRight
+            | ArrayBuilder, SquareBracketRight
             | Never
         ]),
-        (ArrayBody, tree![
+        (ArrayBuilder, tree![
             | Dot3, SpreadArray
             | Expr, TermArray
         ]),
         (TermArray, tree![
-            | Comma, ArrayBody
+            | Comma, ArrayBuilder
         ]),
         (SpreadArray, tree![
             | SquareBracketLeft, Array, TermArray
@@ -268,16 +291,16 @@ pub fn token_tree() -> HashMap<Token, Rc<Node>> {
     // TODO cover plz lambda with out brackets around single param
     let lambda = HashMap::from([
         (Lambda, tree![
-            | BracketRight, FatArrow, LambdaBody
+            | BracketRight, FatArrow, LambdaBuilder
             | Variable, Lambda2
-            | BracketLeftBack, ExprMath
+            | BracketLeftBack, ExprMathBuilder
         ]),
         (Lambda2, tree![
-            | BracketRight, FatArrow, LambdaBody
-            | Comma, Variable, CallTerm, BracketRight, FatArrow, LambdaBody
-            | VariableBack, BracketLeftBack, ExprMath
+            | BracketRight, FatArrow, LambdaBuilder
+            | Comma, Variable, CallTerm, BracketRight, FatArrow, LambdaBuilder
+            | VariableBack, BracketLeftBack, ExprMathBuilder
         ]),
-        (LambdaBody, tree![
+        (LambdaBuilder, tree![
             | CurlyBracketLeft, Statement, CurlyBracketRight
             | Expr
             | Never
@@ -289,21 +312,9 @@ pub fn token_tree() -> HashMap<Token, Rc<Node>> {
             | Always
         ]),
     ]);
-    let call = HashMap::from([
-        (Call, tree![
-            | BracketLeft, CallBody
-        ]),
-        (CallBody, tree![
-            | BracketRight
-            | Expr, CallTerm, BracketRight
-            | Never
-        ]),
-        (CallTerm, tree![
-            | Comma, Expr, CallTerm
-        ]),
-    ]);
+
     let import = HashMap::from([
-        (ImportHeader, tree![
+        (ImportBuilder, tree![
             | String, ClosingExpr
             | ImportExpr, From, String, ClosingExpr
             | Never
@@ -316,6 +327,26 @@ pub fn token_tree() -> HashMap<Token, Rc<Node>> {
         (ImportTerm, tree![
             | Comma, ImportExpr
             | As, Variable, ImportTerm
+        ]),
+    ]);
+
+    // todo maybe later: cover other cases 
+    let export = HashMap::from([
+        (ExportBuilder, tree![
+            | Star, From, String, ClosingExpr
+            | CurlyBracketLeft, Variable, ExportTerm, CurlyBracketRight, ClosingExpr
+            | Default, ExportExpr
+            | ExportExpr
+        ]),
+        (ExportTerm, tree![
+            | Comma, Variable, ExportTerm
+        ]),
+        (ExportExpr, tree![
+            | Class, ClassBuilder
+            | Const, Assignment
+            | Function, FunctionBuilder
+            | Variable, ClosingExpr
+            | Never
         ]),
     ]);
 
