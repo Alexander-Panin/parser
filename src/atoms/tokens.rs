@@ -1,11 +1,13 @@
 use crate::atoms::Token;
 use std::iter::Peekable;
 
-const KEYWORDS: [(&str, Token); 21] = [
+const KEYWORDS: [(&str, Token); 23] = [
     ("as", Token::As),
     ("await", Token::Await),
     ("class", Token::Class),
     ("const", Token::Const),
+    ("default", Token::Default),
+    ("export", Token::Export),
     ("extends", Token::Extends),
     ("false", Token::False),
     ("from", Token::From),

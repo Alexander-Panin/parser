@@ -14,10 +14,12 @@ pub enum Token {
     Const,
     CurlyBracketLeft,
     CurlyBracketRight,
+    Default,
     Dot,
     Dot2,
     Dot3,
     EqualSign,
+    Export,
     Extends,
     False,
     FatArrow,
@@ -55,6 +57,9 @@ pub enum Token {
     CallTerm,
     ClassBody,
     ClosingExpr,
+    ExportExpr,
+    ExportHeader,
+    ExportTerm,
     Expr,
     ExprMath,
     FunctionBody,
@@ -103,22 +108,27 @@ pub fn token_tree() -> HashMap<Token, Rc<Node>> {
     use Token::{Object, ObjectBody, TermObject, Array, ArrayBody, TermArray};
     use Token::{SpreadObject, SpreadArray, ObjectValue};
     use Token::{ImportHeader, ImportExpr, ImportTerm};
+    use Token::{ExportHeader, ExportExpr, ExportTerm};
 
-    let import = HashMap::from([
-        (ImportHeader, tree![
-            | String, ClosingExpr
-            | ImportExpr, From, String, ClosingExpr 
+    // todo maybe later: cover other cases 
+    let export = HashMap::from([
+        (ExportHeader, tree![
+            | Star, From, String, ClosingExpr
+            | CurlyBracketLeft, Variable, ExportTerm, CurlyBracketRight, ClosingExpr
+            | Default, ExportExpr
+            | ExportExpr
+        ]),
+        (ExportTerm, tree![
+            | Comma, Variable, ExportTerm
+        ]),
+        (ExportExpr, tree![
+            | Class, Variable, ClassBody
+            | Function, Variable, FunctionBody
+            | Class, Variable, ClassBody
+            | Const, Assignment
+            | Variable, ClosingExpr
             | Never
         ]),
-        (ImportExpr, tree![
-            | CurlyBracketLeft, Variable, ImportTerm, CurlyBracketRight
-            | Variable, ImportTerm
-            | Star, ImportTerm
-        ]), 
-        (ImportTerm, tree![
-            | Comma, ImportExpr
-            | As, Variable, ImportTerm
-        ]), 
     ]);
 
     let mut expr = HashMap::from([
@@ -151,15 +161,15 @@ pub fn token_tree() -> HashMap<Token, Rc<Node>> {
             | In, Expr
             | Dot, ExprMath
         ]),
-        
-        (Expr, tree![ 
+
+        (Expr, tree![
             | BracketLeft, Lambda
             | CurlyBracketLeft, Object
             | SquareBracketLeft, Array
             | ExprMath
         ]),
         (Assignment, tree![
-            | Variable, EqualSign, Expr, ClosingExpr 
+            | Variable, EqualSign, Expr, ClosingExpr
             | Never
         ]),
         (AssignmentOrCall, tree![
@@ -171,19 +181,20 @@ pub fn token_tree() -> HashMap<Token, Rc<Node>> {
         ]),
         (Statement, tree![
             | Import, ImportHeader, Statement
+            | Export, ExportHeader, Statement
             | Function, Variable, FunctionBody, Statement
+            | Const, Assignment, Statement
             | Class, Variable, ClassBody, Statement
             | If, IfHeader, Statement
             | While, WhileBody, Statement
             | Return, Expr, ClosingExpr, Statement
-            | Const, Assignment, Statement 
             | Let, Assignment, Statement
             | Var, Assignment, Statement
-            | Variable, TermDot, AssignmentOrCall, Statement 
+            | Variable, TermDot, AssignmentOrCall, Statement
         ]),
         (ClassBody, tree![
-            | Extends, Variable, CurlyBracketLeft, Method, CurlyBracketRight 
-            | CurlyBracketLeft, Method, CurlyBracketRight 
+            | Extends, Variable, CurlyBracketLeft, Method, CurlyBracketRight
+            | CurlyBracketLeft, Method, CurlyBracketRight
             | Never
         ]),
         (Method, tree![
@@ -214,7 +225,7 @@ pub fn token_tree() -> HashMap<Token, Rc<Node>> {
 
     let literals = HashMap::from([
         (Object, tree![
-            | ObjectBody, CurlyBracketRight  
+            | ObjectBody, CurlyBracketRight
             | Never
         ]),
         (ObjectBody, tree![
@@ -254,7 +265,7 @@ pub fn token_tree() -> HashMap<Token, Rc<Node>> {
         ]),
     ]);
 
-    // TODO cover plz lambda with out brackets around single param 
+    // TODO cover plz lambda with out brackets around single param
     let lambda = HashMap::from([
         (Lambda, tree![
             | BracketRight, FatArrow, LambdaBody
@@ -272,7 +283,7 @@ pub fn token_tree() -> HashMap<Token, Rc<Node>> {
             | Never
         ]),
         (BracketLeftBack, tree![
-            | Always 
+            | Always
         ]),
         (VariableBack, tree![
             | Always
@@ -291,10 +302,28 @@ pub fn token_tree() -> HashMap<Token, Rc<Node>> {
             | Comma, Expr, CallTerm
         ]),
     ]);
+    let import = HashMap::from([
+        (ImportHeader, tree![
+            | String, ClosingExpr
+            | ImportExpr, From, String, ClosingExpr
+            | Never
+        ]),
+        (ImportExpr, tree![
+            | CurlyBracketLeft, Variable, ImportTerm, CurlyBracketRight
+            | Variable, ImportTerm
+            | Star, ImportTerm
+        ]),
+        (ImportTerm, tree![
+            | Comma, ImportExpr
+            | As, Variable, ImportTerm
+        ]),
+    ]);
+
     expr.extend(lambda);
     expr.extend(call);
     expr.extend(literals);
     expr.extend(import);
+    expr.extend(export);
     expr
 }
 
