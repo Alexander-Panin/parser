@@ -134,7 +134,7 @@ pub fn token_tree() -> HashMap<Token, Rc<Node>> {
             | Never
         ]),
         (VariableBuilder, tree![
-            | Variable, TermDot, TermMath
+            | Variable, Call, TermDot, TermMath
             | Never
         ]),
         (TermMath, tree![
@@ -144,7 +144,6 @@ pub fn token_tree() -> HashMap<Token, Rc<Node>> {
             | QuestionMark, Expr, Colon, Expr
             | Instanceof, ExprMath
             | In, Expr
-            | Dot, ExprMath
         ]),
         (ExprMathBuilder, tree![
             | ExprMath
@@ -161,15 +160,15 @@ pub fn token_tree() -> HashMap<Token, Rc<Node>> {
         (Statement, tree![
             | Import, ImportBuilder, Statement
             | Export, ExportBuilder, Statement
-            | Const, Assignment, Statement
-            | Let, Assignment, Statement
-            | Var, Assignment, Statement
+            | Const, Variable, Assignment, Statement
+            | Let, Variable, Assignment, Statement
+            | Var, Variable, Assignment, Statement
             | Function, FunctionBuilder, Statement
             | Class, ClassBuilder, Statement
             | If, IfBuilder, Statement
             | While, WhileBuilder, Statement
             | Return, ReturnBuilder, Statement
-            | Variable, TermDot, SideEffectBuilder, Statement
+            | Variable, Call, TermDot, SideEffectBuilder, Statement
         ]),
         (FunctionBuilder, tree![
             | Variable, Call, Block
@@ -204,11 +203,12 @@ pub fn token_tree() -> HashMap<Token, Rc<Node>> {
             | Never
         ]),
         (Condition, tree![
-            | BracketLeft, Expr, BracketRight, Block
+            | BracketLeft, Expr, BracketRight
             | Never
         ]),
         (Block, tree![
             | CurlyBracketLeft, Statement, CurlyBracketRight
+            | Statement
             | Never
         ]),
         (ReturnBuilder, tree![
@@ -216,12 +216,11 @@ pub fn token_tree() -> HashMap<Token, Rc<Node>> {
             | Never
         ]),
         (SideEffectBuilder, tree![
+            | Semicolon
             | EqualSign, Expr, ClosingExpr
-            | Call, ClosingExpr
-            | Never
         ]),
         (Assignment, tree![
-            | Variable, EqualSign, Expr, ClosingExpr
+            | EqualSign, Expr, ClosingExpr
             | Never
         ]),
         (TermDot, tree![
@@ -343,7 +342,7 @@ pub fn token_tree() -> HashMap<Token, Rc<Node>> {
         ]),
         (ExportExpr, tree![
             | Class, ClassBuilder
-            | Const, Assignment
+            | Const, Variable, Assignment
             | Function, FunctionBuilder
             | Variable, ClosingExpr
             | Never

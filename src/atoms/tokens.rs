@@ -35,10 +35,9 @@ where
         match ch as char {
             '/' => {
                 for ch2 in fst.by_ref() {
-                    if ch2 as char == '\n' {
-                        return Token::Comment;
-                    }
+                    if ch2 as char == '\n' { break; }
                 }
+                return Token::Comment
             }
             '*' => {
                 let mut prev = b'-';

@@ -1,4 +1,10 @@
 function foo() {
+    while(true) {
+
+    }
+    while(true)
+        while(false)
+            if(4==4) return "foo";
     if (5 == 3) { 
         while(true) {} // it's an empty loop
     }
