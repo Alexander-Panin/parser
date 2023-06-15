@@ -362,5 +362,5 @@ pub enum Choice {
     Word(Token, Rc<Choice>, Rc<Choice>),
 
     #[default]
-    Nil
+    Nil,
 }

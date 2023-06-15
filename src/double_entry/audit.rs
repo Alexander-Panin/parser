@@ -1,8 +1,8 @@
 use crate::atoms::{tree_length, Choice, Token};
 use crate::registry::{Registry, ID};
 use std::collections::HashMap;
-use std::rc::Rc;
 use std::ops::Deref;
+use std::rc::Rc;
 
 #[derive(Default, PartialEq, Debug)]
 pub struct Audit {
@@ -73,14 +73,14 @@ impl Audit {
         match *e.clone() {
             Choice::Word(_, ref ok, _) if *ok.clone() != Choice::Nil => {
                 *e = ok.clone();
-            },
+            }
             _ => self.registry.erase(t),
         }
     }
 
     fn approved(&mut self, t: ID) -> bool {
         let e = self.registry.get(t).unwrap();
-        let Choice::Word(val, _, _) = *e.clone() else { 
+        let Choice::Word(val, _, _) = *e.clone() else {
             return false;
         };
         let result = Some(val) == self.matcher.last().cloned();
