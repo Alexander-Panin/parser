@@ -104,7 +104,7 @@ pub enum Token {
 }
 
 #[rustfmt::skip]
-pub fn token_tree() -> HashMap<Token, Rc<Node>> {
+pub fn token_tree() -> HashMap<Token, Rc<Choice>> {
     use Token::{Expr, TermMath, Assignment, ExprMath, ExprMathBuilder, Statement};
     use Token::{Call, CallTerm, CallBuilder, TermDot, Block, Condition};
     use Token::{Lambda, Lambda2, LambdaBuilder, BracketLeftBack, VariableBack};
@@ -358,8 +358,9 @@ pub fn token_tree() -> HashMap<Token, Rc<Node>> {
 }
 
 #[derive(Default, PartialEq, PartialOrd, Debug)]
-pub struct Node {
-    pub val: Token,
-    pub ok: Option<Rc<Node>>,
-    pub err: Option<Rc<Node>>,
+pub enum Choice {
+    Word(Token, Rc<Choice>, Rc<Choice>),
+
+    #[default]
+    Nil
 }

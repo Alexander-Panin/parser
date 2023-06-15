@@ -9,7 +9,7 @@ use atoms::{token_tree, tokens, Token};
 use double_entry::Audit;
 
 fn audit(matcher: Vec<Token>, filename: Display) {
-    // if format!("{:?}", filename) != "\"./src/tests/body.js\"" {
+    // if format!("{:?}", filename) != "\"./src/tests/basic.js\"" {
     //     return;
     // }
     let mut state = Audit {

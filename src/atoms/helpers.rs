@@ -1,12 +1,9 @@
-use super::Node;
+use super::Choice;
 use std::rc::Rc;
 
-pub fn tree_length(node: Option<Rc<Node>>) -> usize {
-    if node.is_none() {
-        return 0;
-    }
-    let node = node.unwrap();
-    let a = tree_length(node.ok.as_ref().cloned());
-    let b = tree_length(node.err.as_ref().cloned());
+pub fn tree_length(word: &Rc<Choice>) -> usize {
+    let Choice::Word(_, ref ok, ref err) = *word.clone() else { return 0; };
+    let a = tree_length(ok);
+    let b = tree_length(err);
     std::cmp::max(a, b) + 1
 }
