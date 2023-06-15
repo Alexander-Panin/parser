@@ -59,6 +59,7 @@ impl Audit {
         if e.val == Token::Never {
             return;
         }
+
         let x = if ok {
             e.ok.as_ref().cloned()
         } else {

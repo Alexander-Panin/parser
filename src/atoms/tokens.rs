@@ -1,4 +1,4 @@
-use crate::atoms::Token;
+use super::Token;
 use std::iter::Peekable;
 
 const KEYWORDS: [(&str, Token); 23] = [
@@ -31,25 +31,29 @@ fn comment<I>(fst: &mut Peekable<I>) -> Token
 where
     I: Iterator<Item = u8>,
 {
-    if let Some(&ch) = fst.peek() {
-        match ch as char {
-            '/' => {
-                for ch2 in fst.by_ref() {
-                    if ch2 as char == '\n' { break; }
-                }
-                return Token::Comment
-            }
-            '*' => {
-                let mut prev = b'-';
-                for ch2 in fst.by_ref() {
-                    match ch2 as char {
-                        '/' if prev == b'*' => return Token::Comment,
-                        _ => prev = ch2,
-                    }
+    let Some(&ch) = fst.peek() else {
+        return Token::Operator;
+    };
+    match ch as char {
+        '/' => {
+            for ch2 in fst.by_ref() {
+                if ch2 as char == '\n' {
+                    break;
                 }
             }
-            _ => {}
+            return Token::Comment;
         }
+        '*' => {
+            let mut prev = b'-';
+            for ch2 in fst.by_ref() {
+                match ch2 as char {
+                    '/' if prev == b'*' => return Token::Comment,
+                    _ => prev = ch2,
+                }
+            }
+            panic!("waiting for closing token of multiline comment");
+        }
+        _ => {}
     }
     Token::Operator
 }

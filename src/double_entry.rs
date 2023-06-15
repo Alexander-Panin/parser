@@ -1,3 +1,3 @@
 mod audit;
 
-pub use crate::double_entry::audit::Audit;
+pub use self::audit::Audit;

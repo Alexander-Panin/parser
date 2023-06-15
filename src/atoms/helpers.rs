@@ -1,4 +1,4 @@
-use crate::atoms::Node;
+use super::Node;
 use std::rc::Rc;
 
 pub fn tree_length(node: Option<Rc<Node>>) -> usize {
