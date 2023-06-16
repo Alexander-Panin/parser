@@ -26,8 +26,8 @@ impl Audit {
             // println!("{:#?}", self.queue);
             // println!("----------------------");
 
-            let Some(Choice::Word(token, _, _)) = self.registry.get(t) else { 
-                continue; 
+            let Some(Choice::Word(token, _, _)) = self.registry.get(t) else {
+                continue;
             };
             if !self.booked(t, *token) {
                 let is_ok = self.approved(t);
@@ -38,7 +38,7 @@ impl Audit {
 
     fn booked(&mut self, t: ID, token: Token) -> bool {
         let Some(word) = self.tt.get(&token) else {
-            return false; 
+            return false;
         };
         self.double_entry(word.clone());
         self.boost_entry(t);
@@ -47,7 +47,7 @@ impl Audit {
     }
 
     fn approved(&mut self, t: ID) -> bool {
-        let Some(Choice::Word(val, _, _)) = self.registry.get(t) else { 
+        let Some(Choice::Word(val, _, _)) = self.registry.get(t) else {
             return false;
         };
         let result = Some(*val) == self.matcher.last().cloned();
@@ -81,7 +81,6 @@ impl Audit {
             _ => self.registry.erase(t),
         }
     }
-
 
     fn backtrace(&mut self, token: Token) {
         match token {
