@@ -29,10 +29,10 @@ impl Audit {
             // println!("----------------------");
 
             let Some(w) = self.registry.get(t) else { continue; };
-            let Choice::Word(token, _, _) = w.deref() else { continue; };
-            if !self.booked(t, *token) {
-                let ok = self.approved(t);
-                self.audit_step(t, ok);
+            let &Choice::Word(token, _, _) = w.deref() else { continue; };
+            if !self.booked(t, token) {
+                let is_ok = self.approved(t);
+                self.audit_step(t, is_ok);
             }
         }
     }
@@ -45,12 +45,16 @@ impl Audit {
         true
     }
 
-    fn backtrace(&mut self, token: Token) {
-        match token {
-            Token::BracketLeftBack => self.matcher.push(Token::BracketLeft),
-            Token::VariableBack => self.matcher.push(Token::Variable),
-            _ => {}
+    fn approved(&mut self, t: ID) -> bool {
+        let e = self.registry.get(t).unwrap();
+        let Choice::Word(val, _, _) = e.deref() else {
+            return false;
+        };
+        let result = Some(*val) == self.matcher.last().cloned();
+        if result {
+            self.matcher.pop();
         }
+        result
     }
 
     fn audit_step(&mut self, t: ID, approved: bool) {
@@ -71,22 +75,19 @@ impl Audit {
     fn boost_entry(&mut self, t: ID) {
         let e = self.registry.get_mut(t).unwrap();
         match *e.clone() {
-            Choice::Word(_, ref ok, _) if *ok.clone() != Choice::Nil => {
+            Choice::Word(_, ref ok, _) if ok.deref() != &Choice::Nil => {
                 *e = ok.clone();
             }
             _ => self.registry.erase(t),
         }
     }
 
-    fn approved(&mut self, t: ID) -> bool {
-        let e = self.registry.get(t).unwrap();
-        let Choice::Word(val, _, _) = *e.clone() else {
-            return false;
-        };
-        let result = Some(val) == self.matcher.last().cloned();
-        if result {
-            self.matcher.pop();
+
+    fn backtrace(&mut self, token: Token) {
+        match token {
+            Token::BracketLeftBack => self.matcher.push(Token::BracketLeft),
+            Token::VariableBack => self.matcher.push(Token::Variable),
+            _ => {}
         }
-        result
     }
 }
