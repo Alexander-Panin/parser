@@ -17,7 +17,8 @@ fn audit(matcher: Vec<Token>, filename: Display) {
         tt: token_tree(),
         ..Default::default()
     };
-    state.double_entry(state.tt.get(&Token::Statement).unwrap().clone());
+    let word = state.tt.get(&Token::Statement).unwrap();
+    state.double_entry(word.clone());
     state.audit();
     println!(
         "{:?} {} {:?} [matcher size {}]",

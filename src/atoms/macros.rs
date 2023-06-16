@@ -2,10 +2,10 @@ macro_rules! tree {
     ($(| $($x:ident),+ $(,)?)+) => {
         {
             let v = [ $( _path_ok!([$($x)*]), )* ];
-            v.into_iter().rev().fold(Rc::new(Choice::Nil), |acc, path| {
-                match *path {
+            v.into_iter().rev().fold(Choice::Nil, |acc, path| {
+                match path {
                     Choice::Word(val, ref ok, _) =>
-                        Rc::new(Choice::Word(val, ok.clone(), acc)),
+                        Choice::Word(val, ok.clone(), Rc::new(acc)),
                     _ => acc
                 }
             })
@@ -19,12 +19,11 @@ macro_rules! _path_ok {
     };
     ([] $($x:ident)*) => {
         {
-            let mut word = Rc::new(Choice::Nil);
+            let mut word = Choice::Nil;
             $(
-                let x = Rc::new(
-                    Choice::Word(
+                let x = Choice::Word(
                         Token::$x,
-                        word,
+                        Rc::new(word),
                         Rc::new(
                             Choice::Word(
                                 Token::Never,
@@ -32,7 +31,6 @@ macro_rules! _path_ok {
                                 Rc::new(Choice::Nil)
                             )
                         )
-                    ),
                 );
                 word = x;
             )*

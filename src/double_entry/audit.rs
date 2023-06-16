@@ -1,19 +1,17 @@
 use crate::atoms::{tree_length, Choice, Token};
 use crate::registry::{Registry, ID};
 use std::collections::HashMap;
-use std::ops::Deref;
-use std::rc::Rc;
 
 #[derive(Default, PartialEq, Debug)]
 pub struct Audit {
-    pub registry: Registry<Rc<Choice>>,
+    pub registry: Registry<Choice>,
     pub queue: Vec<ID>,
     pub matcher: Vec<Token>,
-    pub tt: HashMap<Token, Rc<Choice>>,
+    pub tt: HashMap<Token, Choice>,
 }
 
 impl Audit {
-    pub fn double_entry(&mut self, word: Rc<Choice>) {
+    pub fn double_entry(&mut self, word: Choice) {
         let n = tree_length(&word);
         let t = self.registry.append(word);
         for _ in 0..n {
@@ -28,9 +26,10 @@ impl Audit {
             // println!("{:#?}", self.queue);
             // println!("----------------------");
 
-            let Some(w) = self.registry.get(t) else { continue; };
-            let &Choice::Word(token, _, _) = w.deref() else { continue; };
-            if !self.booked(t, token) {
+            let Some(Choice::Word(token, _, _)) = self.registry.get(t) else { 
+                continue; 
+            };
+            if !self.booked(t, *token) {
                 let is_ok = self.approved(t);
                 self.audit_step(t, is_ok);
             }
@@ -38,16 +37,17 @@ impl Audit {
     }
 
     fn booked(&mut self, t: ID, token: Token) -> bool {
-        let Some(w) = self.tt.get(&token) else { return false; };
-        self.double_entry(w.clone());
+        let Some(word) = self.tt.get(&token) else {
+            return false; 
+        };
+        self.double_entry(word.clone());
         self.boost_entry(t);
         self.backtrace(token);
         true
     }
 
     fn approved(&mut self, t: ID) -> bool {
-        let e = self.registry.get(t).unwrap();
-        let Choice::Word(val, _, _) = e.deref() else {
+        let Some(Choice::Word(val, _, _)) = self.registry.get(t) else { 
             return false;
         };
         let result = Some(*val) == self.matcher.last().cloned();
@@ -58,9 +58,9 @@ impl Audit {
     }
 
     fn audit_step(&mut self, t: ID, approved: bool) {
-        let e = self.registry.get_mut(t).unwrap();
-        let Choice::Word(val, ref ok, ref err) = *e.clone() else { return; };
-        if val == Token::Never {
+        let word = self.registry.get_mut(t).unwrap();
+        let Choice::Word(val, ok, err) = word else { return; };
+        if *val == Token::Never {
             return;
         }
 
@@ -69,14 +69,14 @@ impl Audit {
             self.registry.erase(t);
             return;
         }
-        *e = x;
+        *word = (*x).clone();
     }
 
     fn boost_entry(&mut self, t: ID) {
-        let e = self.registry.get_mut(t).unwrap();
-        match *e.clone() {
-            Choice::Word(_, ref ok, _) if ok.deref() != &Choice::Nil => {
-                *e = ok.clone();
+        let word = self.registry.get_mut(t).unwrap();
+        match word {
+            Choice::Word(_, ok, _) if *ok.clone() != Choice::Nil => {
+                *word = (*ok.clone()).clone();
             }
             _ => self.registry.erase(t),
         }
