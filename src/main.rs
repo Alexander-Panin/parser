@@ -9,7 +9,7 @@ use atoms::{token_tree, tokens, Token};
 use double_entry::Audit;
 
 fn audit(matcher: Vec<Token>, filename: Display) {
-    // if format!("{:?}", filename) != "\"./src/tests/basic.js\"" {
+    // if format!("{:?}", filename) != "\"./src/js/basic.js\"" {
     //     return;
     // }
     let mut state = Audit {
@@ -34,7 +34,7 @@ fn audit(matcher: Vec<Token>, filename: Display) {
 }
 
 fn main() {
-    let files = fs::read_dir("./src/tests/").unwrap();
+    let files = fs::read_dir("./src/js/").unwrap();
     for file in files {
         let str = fs::read_to_string(file.as_ref().unwrap().path()).expect("Unable to read file");
         let data = str.bytes().peekable();
