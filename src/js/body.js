@@ -12,4 +12,15 @@ function foo() {
         const x = 42 === ts ? ["done"] : {ok: false};
         const xs = 42 !== ts ? foo() : (x) => x+5;
     }
+
+    for(;;) {
+        var x = x*x + 2;
+        log(x);
+        x = x + 1;
+    }
+    var x = 42 == 42;
+    for (let x = 5; x == 42 ; x = x + 1) {
+        var x = x*x + 2;
+        x = x + 1;
+    }
 }

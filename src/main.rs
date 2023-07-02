@@ -21,13 +21,13 @@ fn audit(matcher: Vec<Token>, filename: Display) {
     state.double_entry(word.clone());
     state.audit();
     println!(
-        "{:?} {} {:?} [matcher size {}]",
-        filename,
+        "{} {:?} {:?} [matcher size {}]",
         if state.matcher.is_empty() {
             "ok"
         } else {
             "NOT OK"
         },
+        filename,
         state.registry,
         state.matcher.len()
     );
