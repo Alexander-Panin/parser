@@ -23,4 +23,11 @@ function foo() {
         var x = x*x + 2;
         x = x + 1;
     }
+
+    for (const element of array1) {
+        console.log(element);
+    }    
+    for (let element of array1) {
+        console.log(element);
+    }
 }

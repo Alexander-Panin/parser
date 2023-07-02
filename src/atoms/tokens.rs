@@ -1,7 +1,7 @@
 use super::Token;
 use std::iter::Peekable;
 
-const KEYWORDS: [(&str, Token); 27] = [
+const KEYWORDS: [(&str, Token); 28] = [
     ("as", Token::As),
     ("await", Token::Await),
     ("catch", Token::Catch),
@@ -22,6 +22,7 @@ const KEYWORDS: [(&str, Token); 27] = [
     ("let", Token::Let),
     ("new", Token::New),
     ("null", Token::Null),
+    ("of", Token::Of),
     ("return", Token::Return),
     ("true", Token::True),
     ("try", Token::Try),

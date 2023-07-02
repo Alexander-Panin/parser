@@ -37,6 +37,7 @@ pub enum Token {
     New,
     Null,
     Number,
+    Of,
     Operator,
     QuestionMark,
     Return,
@@ -99,9 +100,10 @@ pub enum Token {
     TryBuilder,
     ForBuilder,
     ForCondition,
-    ForConditionLeft,
-    ForConditionMiddle,
-    ForConditionRight,
+    ForConditionInside,
+    ForConditionNext,
+    ForConditionNext2,
+    ForConditionAssignment,
 
     // Backtracing
     BracketLeftBack,
@@ -128,8 +130,9 @@ pub fn token_tree() -> HashMap<Token, Choice> {
         SpreadObject, SpreadArray, ObjectValue,
         ImportBuilder, ImportExpr, ImportTerm,
         ExportBuilder, ExportExpr, ExportTerm,
-        CatchBuilder, FinallyBuilder, TryBuilder, ForBuilder, ForCondition,
-        ForConditionLeft, ForConditionMiddle, ForConditionRight
+        CatchBuilder, FinallyBuilder, TryBuilder, 
+        ForBuilder, ForCondition, ForConditionAssignment,
+        ForConditionInside, ForConditionNext, ForConditionNext2
     };
 
     let mut expr = HashMap::from([
@@ -233,23 +236,26 @@ pub fn token_tree() -> HashMap<Token, Choice> {
             | Never
         ]),
         (ForCondition, tree![
-            | BracketLeft, 
-                ForConditionLeft, 
-                ForConditionMiddle,  
-                ForConditionRight, BracketRight, Block
+            | BracketLeft, ForConditionInside, BracketRight, Block
             | Never
         ]),
-        (ForConditionLeft, tree![
-            | Semicolon
-            | Let, Variable, Assignment
-            | Var, Variable, Assignment
+        (ForConditionInside, tree![
+            | Semicolon, ForConditionNext
+            | Const, Variable, ForConditionAssignment
+            | Let, Variable, ForConditionAssignment
+            | Var, Variable, ForConditionAssignment
             | Never
         ]),
-        (ForConditionMiddle, tree![
-            | Semicolon
-            | Expr, Semicolon
+        (ForConditionAssignment, tree![
+            | Of, Variable
+            | Assignment, ForConditionNext
+            | Never
         ]),
-        (ForConditionRight, tree![
+        (ForConditionNext, tree![
+            | Semicolon, ForConditionNext2
+            | Expr, Semicolon, ForConditionNext2
+        ]),
+        (ForConditionNext2, tree![
             | Statement
         ]),
         (Condition, tree![
