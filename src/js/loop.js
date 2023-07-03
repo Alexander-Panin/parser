@@ -19,7 +19,7 @@ function foo() {
         x = x + 1;
     }
     var x = 42 == 42;
-    for (let x = 5; x == 42 ; x = x + 1) {
+    for (let x = 5; x != 42 ; x = x + 1) {
         var x = x*x + 2;
         x = x + 1;
     }

@@ -6,6 +6,7 @@ pub enum Token {
     Assignment,
     As,
     Await,
+    Bang,
     BracketLeft,
     BracketRight,
     Catch,
@@ -139,6 +140,7 @@ pub fn token_tree() -> HashMap<Token, Choice> {
         (ExprMath, tree![
             | BracketLeft, ExprMath, BracketRight, TermMath
             | Minus, ExprMath
+            | Bang, ExprMath
             | Function, FunctionBuilder
             | Number, TermMath
             | String, TermMath
@@ -150,10 +152,6 @@ pub fn token_tree() -> HashMap<Token, Choice> {
             | New, VariableBuilder
             | Typeof, VariableBuilder
             | VariableBuilder
-            | Never
-        ]),
-        (VariableBuilder, tree![
-            | Variable, Call, TermDot, TermMath
             | Never
         ]),
         (TermMath, tree![
@@ -173,6 +171,10 @@ pub fn token_tree() -> HashMap<Token, Choice> {
             | CurlyBracketLeft, Object
             | SquareBracketLeft, Array
             | ExprMathBuilder
+        ]),
+        (VariableBuilder, tree![
+            | Variable, Call, TermDot, TermMath
+            | Never
         ]),
 
         // todo `for of loop` 
