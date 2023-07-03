@@ -1,5 +1,3 @@
-function foo(a,b) { const x = a+b; return x in {y: 1}; } 
-
 let isNil = (x) => x === undefined || x === null;
 
 var checkIfInstanceOf = function(obj, classFunction) {

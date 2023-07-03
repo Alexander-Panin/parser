@@ -16,3 +16,6 @@ function foo() {
 }
 
 function more() {}
+
+function someFunction(a,b) { const x = a+b; return x in {y: 1}; } 
+
