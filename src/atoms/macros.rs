@@ -5,7 +5,7 @@ macro_rules! tree {
             v.into_iter().rev().fold(Choice::Nil, |acc, path| {
                 match path {
                     Choice::Word(val, ref ok, _) =>
-                        Choice::Word(val, ok.clone(), Box::new(acc)),
+                        Choice::Word(val, ok.clone(), Rc::new(acc)),
                     _ => acc
                 }
             })
@@ -23,12 +23,12 @@ macro_rules! _path_ok {
             $(
                 let x = Choice::Word(
                         Token::$x,
-                        Box::new(word),
-                        Box::new(
+                        Rc::new(word),
+                        Rc::new(
                             Choice::Word(
                                 Token::Never,
-                                Box::new(Choice::Nil),
-                                Box::new(Choice::Nil)
+                                Rc::new(Choice::Nil),
+                                Rc::new(Choice::Nil)
                             )
                         )
                 );

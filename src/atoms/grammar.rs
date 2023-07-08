@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::rc::Rc;
 
 #[derive(Default, PartialEq, PartialOrd, Clone, Copy, Debug, Eq, Hash)]
 pub enum Token {
@@ -428,7 +429,7 @@ pub fn token_tree() -> HashMap<Token, Choice> {
 
 #[derive(Default, PartialEq, PartialOrd, Debug, Clone)]
 pub enum Choice {
-    Word(Token, Box<Choice>, Box<Choice>),
+    Word(Token, Rc<Choice>, Rc<Choice>),
 
     #[default]
     Nil,
