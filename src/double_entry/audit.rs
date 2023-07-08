@@ -1,6 +1,7 @@
 use crate::atoms::{tree_length, Choice, Token};
 use crate::registry::{Registry, ID};
 use std::collections::HashMap;
+use std::ops::Deref;
 
 #[derive(Default, PartialEq, Debug)]
 pub struct Audit {
@@ -59,24 +60,23 @@ impl Audit {
 
     fn audit_step(&mut self, t: ID, approved: bool) {
         let word = self.registry.get_mut(t).unwrap();
-        let Choice::Word(val, ok, err) = word else { return; };
+        let Choice::Word(val, ref ok, ref err) = word else { return; };
         if *val == Token::Never {
             return;
         }
-
-        let x = if approved { ok.clone() } else { err.clone() };
-        if *x == Choice::Nil {
+        let x = if approved { ok } else { err };
+        if x.deref() == &Choice::Nil {
             self.registry.erase(t);
             return;
         }
-        *word = (*x).clone();
+        *word = x.deref().clone();
     }
 
     fn boost_entry(&mut self, t: ID) {
         let word = self.registry.get_mut(t).unwrap();
         match word {
-            Choice::Word(_, ok, _) if *ok.clone() != Choice::Nil => {
-                *word = (*ok.clone()).clone();
+            Choice::Word(_, ref ok, _) if ok.deref() != &Choice::Nil => {
+                *word = *ok.clone();
             }
             _ => self.registry.erase(t),
         }
