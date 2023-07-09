@@ -91,7 +91,7 @@ where
                 result.push(Token::Number);
                 number(&mut fst);
             }
-            'A'..='Z' | 'a'..='z' => {
+            'A'..='Z' | 'a'..='z' | '_' => {
                 result.push(variable::run(&mut fst, ch as char));
             }
             '/' => {

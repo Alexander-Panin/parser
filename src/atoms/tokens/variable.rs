@@ -1,6 +1,7 @@
 use super::super::Token;
 use std::iter::Peekable;
 
+// require to be in order
 const KEYWORDS: [(&str, Token); 28] = [
     ("as", Token::As),
     ("await", Token::Await),
@@ -40,7 +41,7 @@ where
     let mut r = vec![x];
     while let Some(&ch) = fst.peek() {
         match ch as char {
-            'A'..='Z' | 'a'..='z' | '0'..='9' => r.push(ch as char),
+            'A'..='Z' | 'a'..='z' | '0'..='9' | '_' => r.push(ch as char),
             _ => break,
         }
         fst.next();

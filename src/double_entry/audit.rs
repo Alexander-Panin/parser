@@ -3,15 +3,15 @@ use crate::registry::{Registry, ID};
 use std::collections::HashMap;
 use std::ops::Deref;
 
-#[derive(Default, PartialEq, Debug)]
-pub struct Audit {
+#[derive(PartialEq, Debug)]
+pub struct Audit<'a> {
     pub registry: Registry<Choice>,
     pub queue: Vec<ID>,
     pub matcher: Vec<Token>,
-    pub tt: HashMap<Token, Choice>,
+    pub tt: &'a HashMap<Token, Choice>,
 }
 
-impl Audit {
+impl Audit<'_> {
     pub fn double_entry(&mut self, word: Choice) {
         let n = tree_length(&word);
         let t = self.registry.append(word);

@@ -1,6 +1,9 @@
 function foo() {
     function boo() {
         var x = 5;
+        var _x = 5;
+        var snake_case = 5;
+        var camelCase = 5;
         while (true) {}
         function f() { 
             const x = 5+5;
