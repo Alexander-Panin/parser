@@ -1,5 +1,6 @@
 use std::fs;
-use std::path::Display;
+use std::path::PathBuf;
+use rayon::prelude::*;
 
 mod atoms;
 mod double_entry;
@@ -8,7 +9,7 @@ mod registry;
 use atoms::{token_tree, tokens, Token};
 use double_entry::Audit;
 
-fn audit(matcher: Vec<Token>, filename: Display) {
+fn audit(matcher: Vec<Token>, filename: String) {
     // if format!("{:?}", filename) != "\"./src/js/basic.js\"" {
     //     return;
     // }
@@ -33,12 +34,17 @@ fn audit(matcher: Vec<Token>, filename: Display) {
     );
 }
 
-fn main() {
-    let files = fs::read_dir("./src/js/").unwrap();
-    for file in files {
-        let str = fs::read_to_string(file.as_ref().unwrap().path()).expect("Unable to read file");
+fn par(input: Vec<PathBuf>) {
+    input.par_iter().map(|path| {
+        let filename = String::from(path.to_str().unwrap());
+        let str = fs::read_to_string(path).expect("Unable to read file");
         let data = str.bytes().peekable();
         let v = tokens(data).into_iter().rev().collect();
-        audit(v, file.unwrap().path().display());
-    }
+        audit(v, filename);
+    }).collect()
+}
+
+fn main() {
+    let files = fs::read_dir("./src/js/").unwrap();
+    par(files.map(|f| f.as_ref().unwrap().path()).collect());
 }
