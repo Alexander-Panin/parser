@@ -35,7 +35,7 @@ impl<T> Registry<T> {
         if x.is_none() {
             return;
         }
-        *x.unwrap() = None;
+        x.unwrap().take();
         self.size -= 1;
         if self.size < self.map.len() / 2 {
             self.map.retain(|x| x.1.is_some());
