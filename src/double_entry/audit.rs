@@ -5,7 +5,7 @@ use std::ops::Deref;
 
 #[derive(PartialEq, Debug)]
 pub struct Audit<'a> {
-    pub registry: Registry<Choice>,
+    pub registry: Registry<Word>,
     pub queue: Vec<ID>,
     pub matcher: Vec<Token>,
     pub tt: &'a HashMap<Token, Choice>,
@@ -14,7 +14,7 @@ pub struct Audit<'a> {
 impl Audit<'_> {
     pub fn double_entry(&mut self, word: Choice) {
         let n = tree_length(&word);
-        let t = self.registry.append(word);
+        let t = self.registry.append(word.unwrap());
         for _ in 0..n {
             self.queue.push(t);
         }
@@ -27,7 +27,7 @@ impl Audit<'_> {
             // println!("{:#?}", self.queue);
             // println!("----------------------");
 
-            let Some(Some(Word(token, _, _))) = self.registry.get(t) else {
+            let Some(Word(token, _, _)) = self.registry.get(t) else {
                 continue;
             };
             if !self.booked(t, *token) {
@@ -38,19 +38,17 @@ impl Audit<'_> {
     }
 
     fn booked(&mut self, t: ID, token: Token) -> bool {
-        let Some(word) = self.tt.get(&token) else {
+        let Some(choice) = self.tt.get(&token) else {
             return false;
         };
-        self.double_entry(word.clone());
+        self.double_entry(choice.deref().clone());
         self.boost_entry(t);
         self.backtrace(token);
         true
     }
 
     fn approved(&mut self, t: ID) -> bool {
-        let Some(Some(Word(val, _, _))) = self.registry.get(t) else {
-            return false;
-        };
+        let Word(val, _, _) = self.registry.get(t).unwrap();
         let result = Some(*val) == self.matcher.last().cloned();
         if result {
             self.matcher.pop();
@@ -60,9 +58,7 @@ impl Audit<'_> {
 
     fn audit_step(&mut self, t: ID, approved: bool) {
         let word = self.registry.get_mut(t).unwrap();
-        let Some(Word(val, ref ok, ref err)) = word else { 
-            return; 
-        };
+        let Word(val, ref ok, ref err) = word; 
         if *val == Token::Never {
             return;
         }
@@ -71,14 +67,14 @@ impl Audit<'_> {
             self.registry.erase(t);
             return;
         }
-        *word = x.deref().clone();
+        *word = x.deref().clone().unwrap();
     }
 
     fn boost_entry(&mut self, t: ID) {
         let word = self.registry.get_mut(t).unwrap();
         match word {
-            Some(Word(_, ref ok, _)) if ok.deref().is_some() => {
-                *word = ok.deref().clone();
+            Word(_, ref ok, _) if ok.deref().is_some() => {
+                *word = ok.deref().clone().unwrap();
             }
             _ => self.registry.erase(t),
         }
