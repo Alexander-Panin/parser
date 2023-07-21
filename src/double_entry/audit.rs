@@ -1,4 +1,4 @@
-use crate::atoms::{tree_length, Choice, Token};
+use crate::atoms::{tree_length, Choice, Word, Token};
 use crate::registry::{Registry, ID};
 use std::collections::HashMap;
 use std::ops::Deref;
@@ -27,7 +27,7 @@ impl Audit<'_> {
             // println!("{:#?}", self.queue);
             // println!("----------------------");
 
-            let Some(Choice::Word(token, _, _)) = self.registry.get(t) else {
+            let Some(Some(Word(token, _, _))) = self.registry.get(t) else {
                 continue;
             };
             if !self.booked(t, *token) {
@@ -48,7 +48,7 @@ impl Audit<'_> {
     }
 
     fn approved(&mut self, t: ID) -> bool {
-        let Some(Choice::Word(val, _, _)) = self.registry.get(t) else {
+        let Some(Some(Word(val, _, _))) = self.registry.get(t) else {
             return false;
         };
         let result = Some(*val) == self.matcher.last().cloned();
@@ -60,14 +60,14 @@ impl Audit<'_> {
 
     fn audit_step(&mut self, t: ID, approved: bool) {
         let word = self.registry.get_mut(t).unwrap();
-        let Choice::Word(val, ref ok, ref err) = word else { 
+        let Some(Word(val, ref ok, ref err)) = word else { 
             return; 
         };
         if *val == Token::Never {
             return;
         }
         let x = if approved { ok } else { err };
-        if x.deref() == &Choice::Nil {
+        if x.deref().is_none() {
             self.registry.erase(t);
             return;
         }
@@ -77,7 +77,7 @@ impl Audit<'_> {
     fn boost_entry(&mut self, t: ID) {
         let word = self.registry.get_mut(t).unwrap();
         match word {
-            Choice::Word(_, ref ok, _) if ok.deref() != &Choice::Nil => {
+            Some(Word(_, ref ok, _)) if ok.deref().is_some() => {
                 *word = ok.deref().clone();
             }
             _ => self.registry.erase(t),

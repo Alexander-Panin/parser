@@ -428,9 +428,5 @@ pub fn token_tree() -> HashMap<Token, Choice> {
 }
 
 #[derive(Default, PartialEq, PartialOrd, Debug, Clone)]
-pub enum Choice {
-    Word(Token, Arc<Choice>, Arc<Choice>),
-
-    #[default]
-    Nil,
-}
+pub struct Word(pub Token, pub Arc<Choice>, pub Arc<Choice>);
+pub type Choice = Option<Word>;
