@@ -12,9 +12,9 @@ pub struct Audit<'a> {
 }
 
 impl Audit<'_> {
-    pub fn double_entry(&mut self, word: Choice) {
-        let n = tree_length(&word);
-        let t = self.registry.append(word.unwrap());
+    pub fn double_entry(&mut self, choice: Choice) {
+        let n = tree_length(&choice);
+        let t = self.registry.append(choice.unwrap());
         for _ in 0..n {
             self.queue.push(t);
         }
@@ -38,7 +38,7 @@ impl Audit<'_> {
     }
 
     fn booked(&mut self, t: ID, token: Token) -> bool {
-        let Some(choice) = self.tt.get(&token) else {
+        let Some(ref choice) = self.tt.get(&token) else {
             return false;
         };
         self.double_entry(choice.deref().clone());
@@ -58,7 +58,7 @@ impl Audit<'_> {
 
     fn audit_step(&mut self, t: ID, approved: bool) {
         let word = self.registry.get_mut(t).unwrap();
-        let Word(val, ref ok, ref err) = word; 
+        let Word(val, ref ok, ref err) = word;
         if *val == Token::Never {
             return;
         }
