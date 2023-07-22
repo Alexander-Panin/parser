@@ -11,6 +11,10 @@ where
             '*' | '&' | '|' => {
                 fst.next();
             }
+            '=' => {
+                fst.next();
+                return Token::AssignmentOperator;
+            }
             _ if x == '*' => {
                 return Token::Star;
             }

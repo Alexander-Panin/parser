@@ -19,6 +19,10 @@ where
             }
             return Token::Comment;
         }
+        '=' => {
+            fst.next();
+            return Token::AssignmentOperator;
+        }
         '*' => {
             let mut prev = b'-';
             for ch2 in fst.by_ref() {
@@ -101,7 +105,14 @@ where
                 }
             }
             '=' => result.push(operator::equal_or_fat_arrow(&mut fst)),
-            '-' => result.push(Token::Minus),
+            '-' => {
+                if fst.peek() == Some(&b'=') {
+                    fst.next();
+                    result.push(Token::AssignmentOperator);
+                } else {
+                    result.push(Token::Minus)
+                }
+            },
             // '~' => ...,
             '*' | '+' | '&' | '|' | '%' | '^' => {
                 result.push(operator::math(&mut fst, ch as char));
@@ -121,7 +132,14 @@ where
             ']' => result.push(Token::SquareBracketRight),
             ';' => result.push(Token::Semicolon),
             ':' => result.push(Token::Colon),
-            '?' => result.push(Token::QuestionMark),
+            '?' => {
+                if fst.peek() == Some(&b'?') {
+                    fst.next();
+                    result.push(Token::Operator);
+                } else {
+                    result.push(Token::QuestionMark);
+                }
+            }
             ',' => result.push(Token::Comma),
             '.' => {
                 result.push(dots(&mut fst));

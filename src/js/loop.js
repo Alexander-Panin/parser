@@ -1,12 +1,13 @@
 function foo() {
-    while(true) {
-
-    }
+    while(true) {} // it's an empty loop
+    if (a === 1)
+        console.log(a);
     while(true)
         while(false)
             if(4==4) return "foo";
     if (5 == 3) { 
-        while(true) {} // it's an empty loop
+        while(halve) { x += 1; halve /= 2; } 
+        while(true) { } 
     }
     while(-a+2 && x == 1 || a+2 === 3) { 
         const x = 42 === ts ? ["done"] : {ok: false};
@@ -22,6 +23,7 @@ function foo() {
     for (let x = 5; x != 42 ; x = x + 1) {
         var x = x*x + 2;
         x = x + 1;
+        x += 1;
     }
 
     for (const element of array1) {

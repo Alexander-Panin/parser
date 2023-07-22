@@ -4,6 +4,7 @@ use std::sync::Arc;
 #[derive(Default, PartialEq, PartialOrd, Clone, Copy, Debug, Eq, Hash)]
 pub enum Token {
     Assignment,
+    AssignmentOperator,
     As,
     Await,
     Bang,
@@ -177,7 +178,6 @@ pub fn token_tree() -> HashMap<Token, Choice> {
             | Never
         ]),
 
-        // todo `for of loop` 
         (Statement, tree![
             | Import, ImportBuilder, Statement
             | Export, ExportBuilder, Statement
@@ -222,17 +222,14 @@ pub fn token_tree() -> HashMap<Token, Choice> {
         (FinallyBuilder, tree![
             | Finally, CurlyBracketLeft, Statement, CurlyBracketRight
         ]),
-        // todo `if` without curly brackets
         (IfBuilder, tree![
             | Condition, Block
             | Never
         ]),
-        // todo `for` without curly brackets
         (ForBuilder, tree![
             | ForCondition, Block
             | Never
         ]),
-        // todo `while` without curly brackets
         (WhileBuilder, tree![
             | Condition, Block
             | Never
@@ -276,6 +273,7 @@ pub fn token_tree() -> HashMap<Token, Choice> {
         (SideEffectBuilder, tree![
             | Semicolon
             | EqualSign, Expr, ClosingExpr
+            | AssignmentOperator, Expr, ClosingExpr
         ]),
     ]);
 
