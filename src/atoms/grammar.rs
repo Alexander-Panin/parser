@@ -92,9 +92,9 @@ pub enum Token {
     SpreadObject,
     Statement,
     TermArray,
-    TermDot,
     TermMath,
     TermObject,
+    VariableAccess,
     VariableBuilder,
     WhileBuilder,
     FinallyBuilder,
@@ -123,10 +123,10 @@ pub enum Token {
 pub fn token_tree() -> HashMap<Token, Choice> {
     use Token::{
         Expr, TermMath, Assignment, ExprMath, ExprMathBuilder, Statement,
-        Call, CallTerm, CallBuilder, TermDot, Block, Condition,
+        Call, CallTerm, CallBuilder, Block, Condition,
         Lambda, Lambda2, LambdaBuilder, BracketLeftBack, VariableBack,
         FunctionBuilder, IfBuilder, WhileBuilder, ClosingExpr,
-        ReturnBuilder, SideEffectBuilder,
+        ReturnBuilder, SideEffectBuilder, VariableAccess,
         ClassBuilder, ClassBlock, VariableBuilder, Method, MethodBuilder,
         Object, ObjectBuilder, TermObject, Array, ArrayBuilder, TermArray,
         SpreadObject, SpreadArray, ObjectValue,
@@ -174,8 +174,12 @@ pub fn token_tree() -> HashMap<Token, Choice> {
             | ExprMathBuilder
         ]),
         (VariableBuilder, tree![
-            | Variable, Call, TermDot, TermMath
+            | Variable, Call, VariableAccess, TermMath
             | Never
+        ]),
+        (VariableAccess, tree![
+            | Dot, Variable, Call, VariableAccess
+            | SquareBracketLeft, Expr, SquareBracketRight, Call, VariableAccess
         ]),
 
         (Statement, tree![
@@ -191,14 +195,11 @@ pub fn token_tree() -> HashMap<Token, Choice> {
             | For, ForBuilder, Statement
             | Return, ReturnBuilder, Statement
             | Try, TryBuilder, Statement
-            | Variable, Call, TermDot, SideEffectBuilder, Statement
+            | Variable, Call, VariableAccess, SideEffectBuilder, Statement
         ]),
         (Assignment, tree![
             | EqualSign, Expr, ClosingExpr
             | Never
-        ]),
-        (TermDot, tree![
-            | Dot, Variable, Call, TermDot
         ]),
         (ClosingExpr, tree![
             | Semicolon

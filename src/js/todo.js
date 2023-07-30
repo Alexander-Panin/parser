@@ -1,8 +1,6 @@
 function boo() {
     // x++; maybe not
-    // this["foo"]()
-    // this["foo"] = 5;
-    // x?.a?.b
+    // var x = x?.a?.b + 5;
 }
 
 class Foo {
