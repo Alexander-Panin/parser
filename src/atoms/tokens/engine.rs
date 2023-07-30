@@ -38,18 +38,19 @@ where
     Token::Operator
 }
 
-// todo fix plz real numbers
-fn number<I>(fst: &mut Peekable<I>)
+fn number<I>(fst: &mut Peekable<I>) -> usize
 where
     I: Iterator<Item = u8>,
 {
+    let mut i = 0;
     while let Some(&ch) = fst.peek() {
         match ch as char {
-            '0'..='9' => {}
+            '0'..='9' => { i += 1; }
             _ => break,
         }
         fst.next();
     }
+    return i;
 }
 
 fn dots<I>(fst: &mut Peekable<I>) -> Token
@@ -94,6 +95,11 @@ where
             '0'..='9' => {
                 result.push(Token::Number);
                 number(&mut fst);
+                if fst.peek() == Some(&b'.') {
+                    fst.next();
+                    let c = number(&mut fst);
+                    if c == 0 { result.push(Token::Dot); }
+                }
             }
             'A'..='Z' | 'a'..='z' | '_' => {
                 result.push(variable::run(&mut fst, ch as char));
