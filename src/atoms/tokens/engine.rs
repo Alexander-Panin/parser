@@ -38,19 +38,17 @@ where
     Token::Operator
 }
 
-fn number<I>(fst: &mut Peekable<I>) -> usize
+fn number<I>(fst: &mut Peekable<I>)
 where
     I: Iterator<Item = u8>,
 {
-    let mut i = 0;
     while let Some(&ch) = fst.peek() {
         match ch as char {
-            '0'..='9' => { i += 1; }
+            '0'..='9' => {},
             _ => break,
         }
         fst.next();
     }
-    return i;
 }
 
 fn dots<I>(fst: &mut Peekable<I>) -> Token
@@ -97,8 +95,7 @@ where
                 number(&mut fst);
                 if fst.peek() == Some(&b'.') {
                     fst.next();
-                    let c = number(&mut fst);
-                    if c == 0 { result.push(Token::Dot); }
+                    number(&mut fst);
                 }
             }
             'A'..='Z' | 'a'..='z' | '_' => {
@@ -139,11 +136,16 @@ where
             ';' => result.push(Token::Semicolon),
             ':' => result.push(Token::Colon),
             '?' => {
-                if fst.peek() == Some(&b'?') {
-                    fst.next();
-                    result.push(Token::Operator);
-                } else {
-                    result.push(Token::QuestionMark);
+                match fst.peek() {
+                    Some(&b'?') => {
+                        fst.next();
+                        result.push(Token::Operator);
+                    }
+                    Some(&b'.') => {
+                        fst.next();
+                        result.push(Token::QuestionDotMark);
+                    }
+                    _ => result.push(Token::QuestionMark),
                 }
             }
             ',' => result.push(Token::Comma),

@@ -6,12 +6,15 @@ bb.f = (a+5)*2;
 x += 1.212312313;  
 x -= 2.5; 
 x *= 42.5;
+x *= 42.;
 x /= 2;
 x = this["foo"]() + 5;
 x = this["foo"][a[123]] + 5;
 var x = this.bar["foo"];
 this.bar["foo"]();
 this.bar["foo"]["boo"][123][() => {}](1,2,3);
+x = x?.a?.b.x + 5;
+x = x["foo"].a?.b.x[0] + 5;
 
 const x = 5 != 3 || 42 == 42 && (g + 5); 
 const x = 5 !== 3 && 5 === 42;

@@ -42,6 +42,7 @@ pub enum Token {
     Of,
     Operator,
     QuestionMark,
+    QuestionDotMark,
     Return,
     Star,
     Semicolon,
@@ -178,6 +179,7 @@ pub fn token_tree() -> HashMap<Token, Choice> {
             | Never
         ]),
         (VariableAccess, tree![
+            | QuestionDotMark, Variable, Call, VariableAccess
             | Dot, Variable, Call, VariableAccess
             | SquareBracketLeft, Expr, SquareBracketRight, Call, VariableAccess
         ]),
