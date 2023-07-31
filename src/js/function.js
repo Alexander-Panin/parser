@@ -1,5 +1,6 @@
-function foo() {
-    function boo() {
+function foo(cd) {
+    var that = _this;
+    function boo(a,b) {
         var x = 5;
         var _x = 5;
         var snake_case = 5;
@@ -13,9 +14,9 @@ function foo() {
         let goo = [{}];
     }
 
-    function f() { }
-    function g() { }
-    function moo() { var x = 42; }
+    function f(a,b,c) { }
+    var x = function (a,b) { }
+    var x = function () { }
 }
 
 function more() {}

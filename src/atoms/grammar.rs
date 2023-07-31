@@ -75,6 +75,9 @@ pub enum Token {
     ExprMath,
     ExprMathBuilder,
     FunctionBuilder,
+    FnInit,
+    FnInitBuilder,
+    FnInitTerm,
     IfBuilder,
     ImportBuilder,
     ImportExpr,
@@ -126,7 +129,8 @@ pub fn token_tree() -> HashMap<Token, Choice> {
         Expr, TermMath, Assignment, ExprMath, ExprMathBuilder, Statement,
         Call, CallTerm, CallBuilder, Block, Condition,
         Lambda, Lambda2, LambdaBuilder, BracketLeftBack, VariableBack,
-        FunctionBuilder, IfBuilder, WhileBuilder, ClosingExpr,
+        FunctionBuilder, FnInit, FnInitBuilder, FnInitTerm,
+        IfBuilder, WhileBuilder, ClosingExpr,
         ReturnBuilder, SideEffectBuilder, VariableAccess,
         ClassBuilder, ClassBlock, VariableBuilder, Method, MethodBuilder,
         Object, ObjectBuilder, TermObject, Array, ArrayBuilder, TermArray,
@@ -210,8 +214,8 @@ pub fn token_tree() -> HashMap<Token, Choice> {
 
     let builders = HashMap::from([
         (FunctionBuilder, tree![
-            | Variable, Call, Block
-            | Call, Block
+            | Variable, FnInit, Block
+            | FnInit, Block
             | Never
         ]),
         (TryBuilder, tree![
@@ -219,7 +223,7 @@ pub fn token_tree() -> HashMap<Token, Choice> {
             | Never
         ]),
         (CatchBuilder, tree![
-            | Catch, Call, CurlyBracketLeft, Statement, CurlyBracketRight, FinallyBuilder
+            | Catch, FnInit, CurlyBracketLeft, Statement, CurlyBracketRight, FinallyBuilder
             | Never
         ]),
         (FinallyBuilder, tree![
@@ -280,6 +284,20 @@ pub fn token_tree() -> HashMap<Token, Choice> {
         ]),
     ]);
 
+    let fn_init = HashMap::from([
+        (FnInit, tree![
+            | BracketLeft, FnInitBuilder
+        ]),
+        (FnInitBuilder, tree![
+            | BracketRight
+            | Variable, FnInitTerm, BracketRight
+            | Never
+        ]),
+        (FnInitTerm, tree![
+            | Comma, Variable, FnInitTerm
+        ]),
+    ]);    
+
     let call = HashMap::from([
         (Call, tree![
             | BracketLeft, CallBuilder
@@ -309,7 +327,7 @@ pub fn token_tree() -> HashMap<Token, Choice> {
             | Variable, MethodBuilder
         ]),
         (MethodBuilder, tree![
-            | Call, Block, Method
+            | FnInit, Block, Method
             | Never
         ]),
     ]);
@@ -365,7 +383,7 @@ pub fn token_tree() -> HashMap<Token, Choice> {
         ]),
         (Lambda2, tree![
             | BracketRight, FatArrow, LambdaBuilder
-            | Comma, Variable, CallTerm, BracketRight, FatArrow, LambdaBuilder
+            | Comma, Variable, FnInitTerm, BracketRight, FatArrow, LambdaBuilder
             | VariableBack, BracketLeftBack, ExprMathBuilder
         ]),
         (LambdaBuilder, tree![
@@ -422,6 +440,7 @@ pub fn token_tree() -> HashMap<Token, Choice> {
     expr.extend(class);
     expr.extend(lambda);
     expr.extend(call);
+    expr.extend(fn_init);
     expr.extend(literals);
     expr.extend(import);
     expr.extend(export);
