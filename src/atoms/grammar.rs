@@ -112,7 +112,7 @@ pub enum Token {
     ForConditionAssignment,
     VariableDestructuringTerm,
     VariableDestructuring,
-    VariableDestructuringBuilder,
+    VariableDestructuringInside,
     VariableDestructuringNamed,
 
     // Backtracing
@@ -144,7 +144,7 @@ pub fn token_tree() -> HashMap<Token, Choice> {
         CatchBuilder, FinallyBuilder, TryBuilder, 
         ForBuilder, ForCondition, ForConditionAssignment,
         ForConditionInside, ForConditionNext, ForConditionNext2,
-        VariableDestructuringTerm, VariableDestructuringBuilder, 
+        VariableDestructuringTerm, VariableDestructuringInside,
         VariableDestructuring, VariableDestructuringNamed
     };
 
@@ -198,23 +198,23 @@ pub fn token_tree() -> HashMap<Token, Choice> {
             | Colon, Variable, VariableDestructuringTerm
         ]),
         (VariableDestructuringTerm, tree![
-            | Comma, VariableDestructuring
+            | Comma, VariableDestructuringInside
         ]),
-        (VariableDestructuring, tree![
+        (VariableDestructuringInside, tree![
             | Dot3, Variable, VariableDestructuringTerm
             | Variable, VariableDestructuringNamed, VariableDestructuringTerm
         ]),
-        (VariableDestructuringBuilder, tree![
-            | CurlyBracketLeft, VariableDestructuring, CurlyBracketRight
-            | SquareBracketLeft, VariableDestructuring, SquareBracketRight 
+        (VariableDestructuring, tree![
+            | CurlyBracketLeft, VariableDestructuringInside, CurlyBracketRight
+            | SquareBracketLeft, VariableDestructuringInside, SquareBracketRight 
             | Variable
         ]),
         (Statement, tree![
             | Import, ImportBuilder, Statement
             | Export, ExportBuilder, Statement
-            | Const, VariableDestructuringBuilder, Assignment, Statement
-            | Let, VariableDestructuringBuilder, Assignment, Statement
-            | Var, VariableDestructuringBuilder, Assignment, Statement
+            | Const, VariableDestructuring, Assignment, Statement
+            | Let, VariableDestructuring, Assignment, Statement
+            | Var, VariableDestructuring, Assignment, Statement
             | Function, FunctionBuilder, Statement
             | Class, ClassBuilder, Statement
             | If, IfBuilder, Statement
