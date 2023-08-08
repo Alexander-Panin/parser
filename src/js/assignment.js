@@ -1,0 +1,13 @@
+const {a} = obj;
+const {a,b,} = obj;
+const {a,b,...rest, x} = obj;
+const {a: x, b, c} = obj;
+const {a,b} = obj;
+const [a,b, ...rest] = obj;
+const [a,b] = obj;
+const [a,b] = [1,2];
+const {xx,x} = {x: 5};
+var x = 5;
+x += 1.212312313;  
+x *= 42.5 + 42. + 2.0 + 2. + 2;
+x /= 2;
