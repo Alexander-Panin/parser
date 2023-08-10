@@ -33,8 +33,11 @@ fn audit(matcher: Vec<Token>, tt: &HashMap<Token, Choice>, filename: String) {
         },
         filename,
         state.registry,
-        state.matcher.len()
+        state.matcher.len(),
     );
+    if !state.matcher.is_empty() {
+        println!("{:?}", &state.matcher.iter().rev().collect::<Vec<_>>()[0..5]);
+    }
 }
 
 fn par(input: Vec<PathBuf>) {

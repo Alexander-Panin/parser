@@ -19,7 +19,16 @@ function foo(cd) {
     var x = function () { }
 }
 
-function more() {}
+function empty() {}
+empty_call();
+function foo(a,b,) {}
+function foo(x, a = "foo",b = "bar") {}
+goo(a,b)
+goo(a,b,)
 
 function someFunction(a,b) { const x = a+b; return x in {y: 1}; } 
+
+function someFunction(a: string, b: int,) { } 
+function someFunction(a: ?string, b: ?Map) { } 
+function someFunction(a: int = 42) { } 
 

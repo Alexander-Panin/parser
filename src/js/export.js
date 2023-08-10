@@ -13,5 +13,8 @@ export x;
 export default class Foo {}
 
 export * from "module-name";
+export {a} from "b";
 
+export {a,b,c,}
 export {a,b,c}
+export {a,b,c} from "mega-module";

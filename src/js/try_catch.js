@@ -5,6 +5,7 @@ function tryFoo() {
         x = 5 + 3;
         return x;
     } catch(e) {
+        throw new Foo("bar");
         console.log("XXXX", e);
         return { err: 123 };
     } finally {

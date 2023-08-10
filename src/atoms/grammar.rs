@@ -49,9 +49,11 @@ pub enum Token {
     SquareBracketLeft,
     SquareBracketRight,
     String,
+    Throw,
     True,
     Try,
     Typeof,
+    Type,
     Undefined,
     Var,
     Variable,
@@ -64,6 +66,7 @@ pub enum Token {
     Call,
     CallBuilder,
     CallTerm,
+    CallExpr,
     ClassBlock,
     ClassBuilder,
     ClosingExpr,
@@ -71,6 +74,8 @@ pub enum Token {
     ExportBuilder,
     ExportExpr,
     ExportTerm,
+    ExportFrom,
+    ExportVariable,
     Expr,
     ExprMath,
     ExprMathBuilder,
@@ -78,6 +83,11 @@ pub enum Token {
     FnInit,
     FnInitBuilder,
     FnInitTerm,
+    FnInitVariable,
+    FnInitVariableType, 
+    FnInitType, 
+    FnInitTypeTerm,
+    FnInitVariableDefault,
     IfBuilder,
     ImportBuilder,
     ImportExpr,
@@ -114,6 +124,7 @@ pub enum Token {
     VariableDestructuring,
     VariableDestructuringInside,
     VariableDestructuringNamed,
+    ThrowBuilder,
 
     // Backtracing
     BracketLeftBack,
@@ -131,16 +142,17 @@ pub enum Token {
 pub fn token_tree() -> HashMap<Token, Choice> {
     use Token::{
         Expr, TermMath, Assignment, ExprMath, ExprMathBuilder, Statement,
-        Call, CallTerm, CallBuilder, Block, Condition,
+        Call, CallTerm, CallExpr, CallBuilder, Block, Condition,
         Lambda, Lambda2, LambdaBuilder, BracketLeftBack, VariableBack,
-        FunctionBuilder, FnInit, FnInitBuilder, FnInitTerm,
+        FunctionBuilder, FnInit, FnInitBuilder, FnInitTerm, FnInitVariable,
+        FnInitVariableType, FnInitType, FnInitTypeTerm, FnInitVariableDefault,
         IfBuilder, WhileBuilder, ClosingExpr,
         ReturnBuilder, SideEffectBuilder, VariableAccess,
         ClassBuilder, ClassBlock, VariableBuilder, Method, MethodBuilder,
         Object, ObjectBuilder, TermObject, Array, ArrayBuilder, TermArray,
-        SpreadObject, SpreadArray, ObjectValue,
+        SpreadObject, SpreadArray, ObjectValue, ThrowBuilder,
         ImportBuilder, ImportExpr, ImportTerm,
-        ExportBuilder, ExportExpr, ExportTerm,
+        ExportBuilder, ExportExpr, ExportTerm, ExportFrom, ExportVariable,
         CatchBuilder, FinallyBuilder, TryBuilder, 
         ForBuilder, ForCondition, ForConditionAssignment,
         ForConditionInside, ForConditionNext, ForConditionNext2,
@@ -222,6 +234,7 @@ pub fn token_tree() -> HashMap<Token, Choice> {
             | For, ForBuilder, Statement
             | Return, ReturnBuilder, Statement
             | Try, TryBuilder, Statement
+            | Throw, ThrowBuilder, Statement
             | Variable, Call, VariableAccess, SideEffectBuilder, Statement
         ]),
         (Assignment, tree![
@@ -241,6 +254,11 @@ pub fn token_tree() -> HashMap<Token, Choice> {
         ]),
         (TryBuilder, tree![
             | CurlyBracketLeft, Statement, CurlyBracketRight, CatchBuilder 
+            | Never
+        ]),
+        (ThrowBuilder, tree![
+            | New, VariableBuilder, ClosingExpr
+            | VariableBuilder, ClosingExpr
             | Never
         ]),
         (CatchBuilder, tree![
@@ -311,11 +329,28 @@ pub fn token_tree() -> HashMap<Token, Choice> {
         ]),
         (FnInitBuilder, tree![
             | BracketRight
-            | Variable, FnInitTerm, BracketRight
+            | FnInitVariable, BracketRight, FnInitVariableType
             | Never
         ]),
+        (FnInitVariable, tree![
+            | Variable, FnInitVariableType, FnInitVariableDefault, FnInitTerm
+        ]),
+        (FnInitVariableDefault, tree![
+            | EqualSign, Expr
+        ]),
         (FnInitTerm, tree![
-            | Comma, Variable, FnInitTerm
+            | Comma, FnInitVariable
+        ]),
+        (FnInitVariableType, tree![
+            | Colon, FnInitType 
+        ]),
+        (FnInitType, tree![
+            | Variable, FnInitTypeTerm 
+            | QuestionMark, Variable, FnInitTypeTerm 
+            | Never 
+        ]),
+        (FnInitTypeTerm, tree![
+            | Operator, FnInitType 
         ]),
     ]);    
 
@@ -325,11 +360,17 @@ pub fn token_tree() -> HashMap<Token, Choice> {
         ]),
         (CallBuilder, tree![
             | BracketRight
-            | Expr, CallTerm, BracketRight
+            | Expr, CallTerm
             | Never
         ]),
         (CallTerm, tree![
-            | Comma, Expr, CallTerm
+            | BracketRight
+            | Comma, CallExpr
+            | Never
+        ]),
+        (CallExpr, tree![
+            | BracketRight
+            | Expr, CallTerm
         ]),
     ]);
 
@@ -423,6 +464,7 @@ pub fn token_tree() -> HashMap<Token, Choice> {
     let import = HashMap::from([
         (ImportBuilder, tree![
             | String, ClosingExpr
+            | Type, ImportExpr, From, String, ClosingExpr
             | ImportExpr, From, String, ClosingExpr
             | Never
         ]),
@@ -441,12 +483,19 @@ pub fn token_tree() -> HashMap<Token, Choice> {
     let export = HashMap::from([
         (ExportBuilder, tree![
             | Star, From, String, ClosingExpr
-            | CurlyBracketLeft, Variable, ExportTerm, CurlyBracketRight, ClosingExpr
+            | CurlyBracketLeft, Variable, ExportTerm, CurlyBracketRight, ExportFrom
             | Default, ExportExpr
             | ExportExpr
         ]),
+        (ExportFrom, tree![
+            | From, String, ClosingExpr
+            | ClosingExpr
+        ]),
         (ExportTerm, tree![
-            | Comma, Variable, ExportTerm
+            | Comma, ExportVariable
+        ]),
+        (ExportVariable, tree![
+            | Variable, ExportTerm
         ]),
         (ExportExpr, tree![
             | Class, ClassBuilder
