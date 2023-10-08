@@ -2,12 +2,13 @@ use super::super::Token;
 use std::iter::Peekable;
 
 // require to be in order
-const KEYWORDS: [(&str, Token); 30] = [
+const KEYWORDS: [(&str, Token); 31] = [
     ("as", Token::As),
     ("await", Token::Await),
     ("catch", Token::Catch),
     ("class", Token::Class),
     ("const", Token::Const),
+    ("declare", Token::Declare),
     ("default", Token::Default),
     ("export", Token::Export),
     ("extends", Token::Extends),

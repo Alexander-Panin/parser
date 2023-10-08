@@ -42,7 +42,13 @@ where
             _ => {}
         }
     }
-    if x == '!' { Token::Bang } else { Token::Operator }
+    match x {
+        '!' => Token::Bang,
+        '<' => Token::AngleBracketLeft,
+        '>' => Token::AngleBracketRight,
+        _ => Token::Operator 
+    }
+    // if x == '!' { Token::Bang } else { Token::Operator }
 }
 
 pub fn equal_or_fat_arrow<I>(fst: &mut Peekable<I>) -> Token

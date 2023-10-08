@@ -3,6 +3,8 @@ use std::sync::Arc;
 
 #[derive(Default, PartialEq, PartialOrd, Clone, Copy, Debug, Eq, Hash)]
 pub enum Token {
+    AngleBracketLeft,
+    AngleBracketRight,
     Assignment,
     AssignmentOperator,
     As,
@@ -17,6 +19,7 @@ pub enum Token {
     Const,
     CurlyBracketLeft,
     CurlyBracketRight,
+    Declare,
     Default,
     Dot,
     Dot2,
@@ -87,6 +90,9 @@ pub enum Token {
     FnInitVariableType, 
     FnInitType, 
     FnInitTypeTerm,
+    FnInitTypeLambda,
+    FnInitTypeTemplate,
+    FnInitTypeTemplateTerm,
     FnInitVariableDefault,
     IfBuilder,
     ImportBuilder,
@@ -145,7 +151,8 @@ pub fn token_tree() -> HashMap<Token, Choice> {
         Call, CallTerm, CallExpr, CallBuilder, Block, Condition,
         Lambda, Lambda2, LambdaBuilder, BracketLeftBack, VariableBack,
         FunctionBuilder, FnInit, FnInitBuilder, FnInitTerm, FnInitVariable,
-        FnInitVariableType, FnInitType, FnInitTypeTerm, FnInitVariableDefault,
+        FnInitVariableType, FnInitType, FnInitTypeTerm, FnInitVariableDefault, 
+        FnInitTypeTemplateTerm, FnInitTypeTemplate, FnInitTypeLambda,
         IfBuilder, WhileBuilder, ClosingExpr,
         ReturnBuilder, SideEffectBuilder, VariableAccess,
         ClassBuilder, ClassBlock, VariableBuilder, Method, MethodBuilder,
@@ -181,6 +188,8 @@ pub fn token_tree() -> HashMap<Token, Choice> {
         (TermMath, tree![
             | Minus, ExprMath
             | Star, ExprMath
+            | AngleBracketLeft, ExprMath
+            | AngleBracketRight, ExprMath
             | Operator, ExprMath
             | QuestionMark, Expr, Colon, Expr
             | Instanceof, ExprMath
@@ -228,6 +237,7 @@ pub fn token_tree() -> HashMap<Token, Choice> {
             | Let, VariableDestructuring, Assignment, Statement
             | Var, VariableDestructuring, Assignment, Statement
             | Function, FunctionBuilder, Statement
+            | Declare, Function, Variable, FnInit, ClosingExpr, Statement
             | Class, ClassBuilder, Statement
             | If, IfBuilder, Statement
             | While, WhileBuilder, Statement
@@ -325,10 +335,10 @@ pub fn token_tree() -> HashMap<Token, Choice> {
 
     let fn_init = HashMap::from([
         (FnInit, tree![
-            | BracketLeft, FnInitBuilder
+            | FnInitTypeTemplate, BracketLeft, FnInitBuilder
         ]),
         (FnInitBuilder, tree![
-            | BracketRight
+            | BracketRight, FnInitVariableType
             | FnInitVariable, BracketRight, FnInitVariableType
             | Never
         ]),
@@ -342,15 +352,29 @@ pub fn token_tree() -> HashMap<Token, Choice> {
             | Comma, FnInitVariable
         ]),
         (FnInitVariableType, tree![
-            | Colon, FnInitType 
+            | Colon, FnInitType
+            | QuestionMark, Colon, FnInitType 
         ]),
         (FnInitType, tree![
-            | Variable, FnInitTypeTerm 
+            | BracketLeft, FnInitTypeLambda
+            | Null, FnInitTypeTerm
+            | Variable, FnInitTypeTemplate, FnInitTypeTerm 
             | QuestionMark, Variable, FnInitTypeTerm 
             | Never 
         ]),
+        (FnInitTypeLambda, tree![
+            | BracketLeft, Lambda, BracketRight, FnInitTypeTerm
+            | Lambda, FnInitTypeTerm 
+            | Never
+        ]),
         (FnInitTypeTerm, tree![
             | Operator, FnInitType 
+        ]),
+        (FnInitTypeTemplate, tree![
+            | AngleBracketLeft, FnInitType, FnInitTypeTemplateTerm, AngleBracketRight  
+        ]),
+        (FnInitTypeTemplateTerm, tree![
+            | Comma, FnInitType
         ]),
     ]);    
 
@@ -493,6 +517,7 @@ pub fn token_tree() -> HashMap<Token, Choice> {
         ]),
         (ExportTerm, tree![
             | Comma, ExportVariable
+            | As, Variable, ExportTerm
         ]),
         (ExportVariable, tree![
             | Variable, ExportTerm
