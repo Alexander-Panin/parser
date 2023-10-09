@@ -63,7 +63,6 @@ pub enum Token {
     While,
 
     // compound
-    Array,
     ArrayBuilder,
     Block,
     Call,
@@ -156,7 +155,7 @@ pub fn token_tree() -> HashMap<Token, Choice> {
         IfBuilder, WhileBuilder, ClosingExpr,
         ReturnBuilder, SideEffectBuilder, VariableAccess,
         ClassBuilder, ClassBlock, VariableBuilder, Method, MethodBuilder,
-        Object, ObjectBuilder, TermObject, Array, ArrayBuilder, TermArray,
+        Object, ObjectBuilder, TermObject, ArrayBuilder, TermArray,
         SpreadObject, SpreadArray, ObjectValue, ThrowBuilder,
         ImportBuilder, ImportExpr, ImportTerm,
         ExportBuilder, ExportExpr, ExportTerm, ExportFrom, ExportVariable,
@@ -202,7 +201,7 @@ pub fn token_tree() -> HashMap<Token, Choice> {
         (Expr, tree![
             | BracketLeft, Lambda
             | CurlyBracketLeft, Object
-            | SquareBracketLeft, Array
+            | SquareBracketLeft, ArrayBuilder
             | ExprMathBuilder
         ]),
         (VariableBuilder, tree![
@@ -441,20 +440,18 @@ pub fn token_tree() -> HashMap<Token, Choice> {
             | CurlyBracketLeft, Object, TermObject
             | Never
         ]),
-        (Array, tree![
-            | SquareBracketRight
-            | ArrayBuilder, SquareBracketRight
-            | Never
-        ]),
         (ArrayBuilder, tree![
+            | SquareBracketRight
             | Dot3, SpreadArray
             | Expr, TermArray
+            | Never
         ]),
         (TermArray, tree![
+            | SquareBracketRight
             | Comma, ArrayBuilder
         ]),
         (SpreadArray, tree![
-            | SquareBracketLeft, Array, TermArray
+            | SquareBracketLeft, ArrayBuilder, TermArray
             | Variable, TermArray
             | Never
         ]),
