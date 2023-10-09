@@ -37,8 +37,12 @@ where
                 }
                 return Token::Operator;
             }
-            '<' if x == '<' => { fst.next(); }
-            '>' if x == '>' => { fst.next(); }
+            '<' if x == '<' => {
+                fst.next();
+            }
+            '>' if x == '>' => {
+                fst.next();
+            }
             _ => {}
         }
     }
@@ -46,7 +50,7 @@ where
         '!' => Token::Bang,
         '<' => Token::AngleBracketLeft,
         '>' => Token::AngleBracketRight,
-        _ => Token::Operator 
+        _ => Token::Operator,
     }
     // if x == '!' { Token::Bang } else { Token::Operator }
 }

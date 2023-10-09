@@ -1,7 +1,7 @@
-use std::iter::Peekable;
 use super::super::Token;
 use super::operator;
 use super::variable;
+use std::iter::Peekable;
 
 fn comment<I>(fst: &mut Peekable<I>) -> Token
 where
@@ -44,7 +44,7 @@ where
 {
     while let Some(&ch) = fst.peek() {
         match ch as char {
-            '0'..='9' => {},
+            '0'..='9' => {}
             _ => break,
         }
         fst.next();
@@ -115,7 +115,7 @@ where
                 } else {
                     result.push(Token::Minus)
                 }
-            },
+            }
             // '~' => ...,
             '*' | '+' | '&' | '|' | '%' | '^' => {
                 result.push(operator::math(&mut fst, ch as char));
@@ -135,19 +135,17 @@ where
             ']' => result.push(Token::SquareBracketRight),
             ';' => result.push(Token::Semicolon),
             ':' => result.push(Token::Colon),
-            '?' => {
-                match fst.peek() {
-                    Some(&b'?') => {
-                        fst.next();
-                        result.push(Token::Operator);
-                    }
-                    Some(&b'.') => {
-                        fst.next();
-                        result.push(Token::QuestionDotMark);
-                    }
-                    _ => result.push(Token::QuestionMark),
+            '?' => match fst.peek() {
+                Some(&b'?') => {
+                    fst.next();
+                    result.push(Token::Operator);
                 }
-            }
+                Some(&b'.') => {
+                    fst.next();
+                    result.push(Token::QuestionDotMark);
+                }
+                _ => result.push(Token::QuestionMark),
+            },
             ',' => result.push(Token::Comma),
             '.' => {
                 result.push(dots(&mut fst));

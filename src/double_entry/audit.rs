@@ -1,4 +1,4 @@
-use crate::atoms::{tree_length, Choice, Word, Token};
+use crate::atoms::{tree_length, Choice, Token, Word};
 use crate::registry::{Registry, ID};
 use std::collections::HashMap;
 use std::ops::Deref;
