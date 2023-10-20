@@ -106,7 +106,10 @@ pub enum Token {
     ObjectBuilder,
     ObjectValue,
     ReturnBuilder,
+    RegExpBuilder,
+    RegExpTerm,
     SideEffectBuilder,
+    Slash,
     SpreadArray,
     SpreadObject,
     Statement,
@@ -138,6 +141,7 @@ pub enum Token {
 
     // Auxiliary
     Comment,
+    AnyToken,
 
     #[default]
     Never,
@@ -152,7 +156,8 @@ pub fn token_tree() -> HashMap<Token, Choice> {
         FunctionBuilder, FnInit, FnInitBuilder, FnInitTerm, FnInitVariable,
         FnInitVariableType, FnInitType, FnInitTypeTerm, FnInitVariableDefault, 
         FnInitTypeTemplateTerm, FnInitTypeTemplate, FnInitTypeLambda,
-        IfBuilder, WhileBuilder, ClosingExpr,
+        IfBuilder, WhileBuilder, ClosingExpr, 
+        RegExpBuilder, RegExpTerm,
         ReturnBuilder, SideEffectBuilder, VariableAccess,
         ClassBuilder, ClassBlock, VariableBuilder, Method, MethodBuilder,
         Object, ObjectBuilder, TermObject, ArrayBuilder, TermArray,
@@ -189,6 +194,7 @@ pub fn token_tree() -> HashMap<Token, Choice> {
             | Star, ExprMath
             | AngleBracketLeft, ExprMath
             | AngleBracketRight, ExprMath
+            | Slash, ExprMath
             | Operator, ExprMath
             | QuestionMark, Expr, Colon, Expr
             | Instanceof, ExprMath
@@ -202,6 +208,7 @@ pub fn token_tree() -> HashMap<Token, Choice> {
             | BracketLeft, Lambda
             | CurlyBracketLeft, Object
             | SquareBracketLeft, ArrayBuilder
+            | Slash, RegExpBuilder
             | ExprMathBuilder
         ]),
         (VariableBuilder, tree![
@@ -332,6 +339,16 @@ pub fn token_tree() -> HashMap<Token, Choice> {
         ]),
     ]);
 
+    let reg_exp = HashMap::from([
+        (RegExpBuilder, tree![
+            | Slash, VariableAccess
+            | AnyToken, RegExpTerm
+        ]),
+        (RegExpTerm, tree![
+            | Slash, VariableAccess
+            | AnyToken, RegExpTerm
+        ]),
+    ]);
     let fn_init = HashMap::from([
         (FnInit, tree![
             | FnInitTypeTemplate, BracketLeft, FnInitBuilder
@@ -533,6 +550,7 @@ pub fn token_tree() -> HashMap<Token, Choice> {
     expr.extend(lambda);
     expr.extend(call);
     expr.extend(fn_init);
+    expr.extend(reg_exp);
     expr.extend(literals);
     expr.extend(import);
     expr.extend(export);

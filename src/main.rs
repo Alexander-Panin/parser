@@ -9,18 +9,12 @@ mod registry;
 
 use atoms::{token_tree, tokens, Choice, Token};
 use double_entry::Audit;
-use registry::Registry;
 
 fn audit(matcher: Vec<Token>, tt: &HashMap<Token, Choice>, filename: String) {
     // if format!("{:?}", filename) != "\"./src/js/basic.js\"" {
     //     return;
     // }
-    let mut state = Audit {
-        matcher,
-        tt,
-        registry: Registry::default(),
-        queue: vec![],
-    };
+    let mut state = Audit::new(matcher, tt);
     let word = state.tt.get(&Token::Statement).unwrap();
     state.double_entry(word.clone());
     state.audit();
@@ -35,6 +29,7 @@ fn audit(matcher: Vec<Token>, tt: &HashMap<Token, Choice>, filename: String) {
         state.registry,
         state.matcher.len(),
     );
+    // println!("{:#?}", state.stats);
     if !state.matcher.is_empty() {
         println!(
             "{:?}",

@@ -8,7 +8,23 @@ pub struct Audit<'a> {
     pub registry: Registry<Word>,
     pub queue: Vec<ID>,
     pub matcher: Vec<Token>,
+    pub stats: HashMap<Token, usize>,
     pub tt: &'a HashMap<Token, Choice>,
+}
+
+impl<'a> Audit<'a> {
+    pub fn new(
+        matcher: Vec<Token>,
+        tt: &'a HashMap<Token, Choice>
+    ) -> Self {
+        Self {
+            matcher,
+            tt,
+            registry: Registry::default(),
+            queue: vec![],
+            stats: HashMap::new(),
+        }
+    }
 }
 
 impl Audit<'_> {
@@ -44,12 +60,16 @@ impl Audit<'_> {
         self.double_entry(choice.deref().clone());
         self.boost_entry(t);
         self.backtrace(token);
+        self.stats(token);
         true
     }
 
     fn approved(&mut self, t: ID) -> bool {
         let Word(val, _, _) = self.registry.get(t).unwrap();
-        let result = Some(*val) == self.matcher.last().cloned();
+        let is_match = Some(*val) == self.matcher.last().cloned(); 
+        let is_any = *val == Token::AnyToken;
+        let is_empty = self.matcher.is_empty();
+        let result = !is_empty && (is_match || is_any);
         if result {
             self.matcher.pop();
         }
@@ -86,5 +106,11 @@ impl Audit<'_> {
             Token::VariableBack => self.matcher.push(Token::Variable),
             _ => {}
         }
+    }    
+
+    fn stats(&mut self, token: Token) {
+        self.stats.entry(token)
+            .and_modify(|e| *e += 1)
+            .or_insert(1);
     }
 }

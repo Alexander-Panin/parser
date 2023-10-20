@@ -8,7 +8,7 @@ where
     I: Iterator<Item = u8>,
 {
     let Some(&ch) = fst.peek() else {
-        return Token::Operator;
+        return Token::Slash;
     };
     match ch as char {
         '/' => {
@@ -35,7 +35,7 @@ where
         }
         _ => {}
     }
-    Token::Operator
+    Token::Slash
 }
 
 fn number<I>(fst: &mut Peekable<I>)
