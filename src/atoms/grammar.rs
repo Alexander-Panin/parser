@@ -240,7 +240,7 @@ pub fn token_tree() -> HashMap<Token, Choice> {
             | Import, ImportBuilder, Statement
             | Export, ExportBuilder, Statement
             | Const, VariableDestructuring, Assignment, Statement
-            | Let, VariableDestructuring, Assignment, Statement
+            | Let, VariableDestructuring, SideEffectBuilder, Statement
             | Var, VariableDestructuring, Assignment, Statement
             | Function, FunctionBuilder, Statement
             | Declare, Function, Variable, FnInit, ClosingExpr, Statement
@@ -484,6 +484,7 @@ pub fn token_tree() -> HashMap<Token, Choice> {
         (Lambda2, tree![
             | BracketRight, FatArrow, LambdaBuilder
             | Comma, Variable, FnInitTerm, BracketRight, FatArrow, LambdaBuilder
+            | Colon, FnInitType, BracketRight, FatArrow, LambdaBuilder
             | VariableBack, BracketLeftBack, ExprMathBuilder
         ]),
         (LambdaBuilder, tree![
