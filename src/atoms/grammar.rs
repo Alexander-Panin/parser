@@ -384,7 +384,7 @@ pub fn token_tree() -> HashMap<Token, Choice> {
             | BracketLeft, FnInitTypeLambda
             | Null, FnInitTypeTerm
             | Variable, FnInitTypeTemplate, FnInitTypeTerm 
-            | QuestionMark, Variable, FnInitTypeTerm 
+            | QuestionMark, Variable, FnInitTypeTemplate, FnInitTypeTerm 
             | Never 
         ]),
         (FnInitTypeLambda, tree![
