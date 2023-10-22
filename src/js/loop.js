@@ -9,6 +9,7 @@ function foo() {
         while(halve) { x += 1; halve /= 2; } 
         while(true) { } 
     }
+    if (a == b) { f() } else { boo() }    
     while(-a+2 && x == 1 || a+2 === 3) { 
         const x = 42 === ts ? ["done"] : {ok: false};
         const xs = 42 !== ts ? foo() : (x) => x+5;

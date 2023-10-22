@@ -24,6 +24,7 @@ pub enum Token {
     Dot,
     Dot2,
     Dot3,
+    Else,
     EqualSign,
     Export,
     Extends,
@@ -73,6 +74,7 @@ pub enum Token {
     ClassBuilder,
     ClosingExpr,
     Condition,
+    ElseBuilder,
     ExportBuilder,
     ExportExpr,
     ExportTerm,
@@ -80,6 +82,7 @@ pub enum Token {
     ExportVariable,
     Expr,
     ExprMath,
+    ExprMathType,
     ExprMathBuilder,
     FunctionBuilder,
     FnInit,
@@ -156,8 +159,8 @@ pub fn token_tree() -> HashMap<Token, Choice> {
         FunctionBuilder, FnInit, FnInitBuilder, FnInitTerm, FnInitVariable,
         FnInitVariableType, FnInitType, FnInitTypeTerm, FnInitVariableDefault, 
         FnInitTypeTemplateTerm, FnInitTypeTemplate, FnInitTypeLambda,
-        IfBuilder, WhileBuilder, ClosingExpr, 
-        RegExpBuilder, RegExpTerm,
+        IfBuilder, WhileBuilder, ClosingExpr, ExprMathType,
+        RegExpBuilder, RegExpTerm, ElseBuilder,
         ReturnBuilder, SideEffectBuilder, VariableAccess,
         ClassBuilder, ClassBlock, VariableBuilder, Method, MethodBuilder,
         Object, ObjectBuilder, TermObject, ArrayBuilder, TermArray,
@@ -173,7 +176,7 @@ pub fn token_tree() -> HashMap<Token, Choice> {
 
     let mut expr = HashMap::from([
         (ExprMath, tree![
-            | BracketLeft, ExprMath, BracketRight, TermMath
+            | BracketLeft, ExprMath, ExprMathType, BracketRight, VariableAccess, TermMath
             | Minus, ExprMath
             | Bang, ExprMath
             | Function, FunctionBuilder
@@ -199,6 +202,9 @@ pub fn token_tree() -> HashMap<Token, Choice> {
             | QuestionMark, Expr, Colon, Expr
             | Instanceof, ExprMath
             | In, Expr
+        ]),
+        (ExprMathType, tree![
+            | Colon, Variable, FnInitTypeTemplate
         ]),
         (ExprMathBuilder, tree![
             | ExprMath
@@ -285,8 +291,11 @@ pub fn token_tree() -> HashMap<Token, Choice> {
             | Finally, CurlyBracketLeft, Statement, CurlyBracketRight
         ]),
         (IfBuilder, tree![
-            | Condition, Block
+            | Condition, Block, ElseBuilder
             | Never
+        ]),
+        (ElseBuilder, tree![
+            | Else, Block
         ]),
         (ForBuilder, tree![
             | ForCondition, Block

@@ -2,7 +2,7 @@ use super::super::Token;
 use std::iter::Peekable;
 
 // require to be in order
-const KEYWORDS: [(&str, Token); 31] = [
+const KEYWORDS: [(&str, Token); 32] = [
     ("as", Token::As),
     ("await", Token::Await),
     ("catch", Token::Catch),
@@ -10,6 +10,7 @@ const KEYWORDS: [(&str, Token); 31] = [
     ("const", Token::Const),
     ("declare", Token::Declare),
     ("default", Token::Default),
+    ("else", Token::Else),
     ("export", Token::Export),
     ("extends", Token::Extends),
     ("false", Token::False),
