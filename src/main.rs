@@ -53,7 +53,7 @@ fn par(input: Vec<PathBuf>) {
 }
 
 fn main() {
-    // let files = fs::read_dir("./src/js/frameworks").unwrap();
-    let files = fs::read_dir("./src/js/").unwrap();
+    let files = fs::read_dir("./src/js/frameworks").unwrap();
+    // let files = fs::read_dir("./src/js/").unwrap();
     par(files.map(|f| f.as_ref().unwrap().path()).collect());
 }

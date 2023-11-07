@@ -103,6 +103,7 @@ impl Audit<'_> {
     fn backtrace(&mut self, token: Token) {
         match token {
             Token::BracketLeftBack => self.matcher.push(Token::BracketLeft),
+            Token::BracketRightBack => self.matcher.push(Token::BracketRight),
             Token::VariableBack => self.matcher.push(Token::Variable),
             _ => {}
         }

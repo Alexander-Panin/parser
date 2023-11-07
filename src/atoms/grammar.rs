@@ -102,6 +102,7 @@ pub enum Token {
     ImportTerm,
     Lambda,
     Lambda2,
+    Lambda3,
     LambdaBuilder,
     Method,
     MethodBuilder,
@@ -120,6 +121,7 @@ pub enum Token {
     TermMath,
     TermObject,
     VariableAccess,
+    VariableAccessPossibleNames,
     VariableBuilder,
     WhileBuilder,
     FinallyBuilder,
@@ -139,6 +141,7 @@ pub enum Token {
 
     // Backtracing
     BracketLeftBack,
+    BracketRightBack,
     VariableBack,
     Always,
 
@@ -155,17 +158,17 @@ pub fn token_tree() -> HashMap<Token, Choice> {
     use Token::{
         Expr, TermMath, Assignment, ExprMath, ExprMathBuilder, Statement,
         Call, CallTerm, CallExpr, CallBuilder, Block, Condition,
-        Lambda, Lambda2, LambdaBuilder, BracketLeftBack, VariableBack,
+        Lambda, Lambda2, Lambda3, LambdaBuilder, BracketLeftBack, VariableBack,
         FunctionBuilder, FnInit, FnInitBuilder, FnInitTerm, FnInitVariable,
         FnInitVariableType, FnInitType, FnInitTypeTerm, FnInitVariableDefault, 
         FnInitTypeTemplateTerm, FnInitTypeTemplate, FnInitTypeLambda,
-        IfBuilder, WhileBuilder, ClosingExpr, ExprMathType,
-        RegExpBuilder, RegExpTerm, ElseBuilder,
+        IfBuilder, WhileBuilder, ClosingExpr, ExprMathType, 
+        RegExpBuilder, RegExpTerm, ElseBuilder, VariableAccessPossibleNames,
         ReturnBuilder, SideEffectBuilder, VariableAccess,
         ClassBuilder, ClassBlock, VariableBuilder, Method, MethodBuilder,
         Object, ObjectBuilder, TermObject, ArrayBuilder, TermArray,
         SpreadObject, SpreadArray, ObjectValue, ThrowBuilder,
-        ImportBuilder, ImportExpr, ImportTerm,
+        ImportBuilder, ImportExpr, ImportTerm, BracketRightBack,
         ExportBuilder, ExportExpr, ExportTerm, ExportFrom, ExportVariable,
         CatchBuilder, FinallyBuilder, TryBuilder, 
         ForBuilder, ForCondition, ForConditionAssignment,
@@ -222,9 +225,14 @@ pub fn token_tree() -> HashMap<Token, Choice> {
             | Never
         ]),
         (VariableAccess, tree![
-            | QuestionDotMark, Variable, Call, VariableAccess
-            | Dot, Variable, Call, VariableAccess
+            | QuestionDotMark, VariableAccessPossibleNames, Call, VariableAccess
+            | Dot, VariableAccessPossibleNames, Call, VariableAccess
             | SquareBracketLeft, Expr, SquareBracketRight, Call, VariableAccess
+        ]),
+        (VariableAccessPossibleNames, tree![
+            | Type
+            | Variable
+            | Never
         ]),
 
         (VariableDestructuringNamed, tree![
@@ -240,7 +248,7 @@ pub fn token_tree() -> HashMap<Token, Choice> {
         (VariableDestructuring, tree![
             | CurlyBracketLeft, VariableDestructuringInside, CurlyBracketRight
             | SquareBracketLeft, VariableDestructuringInside, SquareBracketRight 
-            | Variable
+            | Variable, FnInitVariableType
         ]),
         (Statement, tree![
             | Import, ImportBuilder, Statement
@@ -487,14 +495,17 @@ pub fn token_tree() -> HashMap<Token, Choice> {
     let lambda = HashMap::from([
         (Lambda, tree![
             | BracketRight, FatArrow, LambdaBuilder
-            | Variable, Lambda2
+            | Variable, FnInitVariableType, Lambda2
             | BracketLeftBack, ExprMathBuilder
         ]),
         (Lambda2, tree![
-            | BracketRight, FatArrow, LambdaBuilder
+            | BracketRight, Lambda3
             | Comma, Variable, FnInitTerm, BracketRight, FatArrow, LambdaBuilder
-            | Colon, FnInitType, BracketRight, FatArrow, LambdaBuilder
             | VariableBack, BracketLeftBack, ExprMathBuilder
+        ]),
+        (Lambda3, tree![
+            | FatArrow, LambdaBuilder
+            | BracketRightBack, VariableBack, BracketLeftBack, ExprMathBuilder
         ]),
         (LambdaBuilder, tree![
             | CurlyBracketLeft, Statement, CurlyBracketRight
@@ -502,6 +513,9 @@ pub fn token_tree() -> HashMap<Token, Choice> {
             | Never
         ]),
         (BracketLeftBack, tree![
+            | Always
+        ]),
+        (BracketRightBack, tree![
             | Always
         ]),
         (VariableBack, tree![
