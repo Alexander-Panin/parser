@@ -156,7 +156,7 @@ pub enum Token {
 }
 
 #[rustfmt::skip]
-pub fn token_tree() -> HashMap<Token, Choice> {
+pub fn token_tree() -> HashMap<Token, TokenTree> {
     use Token::{
         Expr, TermMath, Assignment, ExprMath, ExprMathBuilder, Statement,
         Call, CallTerm, CallExpr, CallBuilder, Block, Condition,
@@ -588,9 +588,9 @@ pub struct Word(pub Token, pub Arc<Choice>, pub Arc<Choice>);
 pub type Choice = Option<Word>;
 
 
-type TokenTree = Tree<Token>;
+pub type TokenTree = Tree<Token>;
 
-struct Tree<T> {
+pub struct Tree<T> {
     root: Link<T>,
     far_right: Link<T>,
     current_left: Link<T>,
@@ -598,7 +598,7 @@ struct Tree<T> {
     _foo: PhantomData<T>,
 }
 
-type Link<T> = Option<NonNull<Node<T>>>;
+pub type Link<T> = Option<NonNull<Node<T>>>;
 
 struct Node<T> {
     elem: T,
@@ -676,7 +676,7 @@ impl<T> Drop for Tree<T> {
 }
 
 
-struct Cursor<'a, T> {
+pub struct Cursor<'a, T> {
     current: Link<T>,
     _foo: PhantomData<&'a T>,  
 }
