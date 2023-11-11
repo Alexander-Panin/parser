@@ -7,16 +7,16 @@ mod atoms;
 mod double_entry;
 mod registry;
 
-use atoms::{token_tree, tokens, Choice, Token};
+use atoms::{token_tree, tokens, Token, TokenTree};
 use double_entry::Audit;
 
-fn audit(matcher: Vec<Token>, tt: &HashMap<Token, Choice>, filename: String) {
+fn audit(matcher: Vec<Token>, tt: &HashMap<Token, TokenTree>, filename: String) {
     // if format!("{:?}", filename) != "\"./src/js/basic.js\"" {
     //     return;
     // }
     let mut state = Audit::new(matcher, tt);
-    let word = state.tt.get(&Token::Statement).unwrap();
-    state.double_entry(word.clone());
+    let t = state.tt.get(&Token::Statement).unwrap();
+    state.double_entry(t.cursor(), t.len);
     state.audit();
     println!(
         "{} {:?} {:?} [matcher size {}]",

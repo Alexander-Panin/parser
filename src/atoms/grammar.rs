@@ -590,16 +590,18 @@ pub type Choice = Option<Word>;
 
 pub type TokenTree = Tree<Token>;
 
+#[derive(Debug)]
 pub struct Tree<T> {
     root: Link<T>,
     far_right: Link<T>,
     current_left: Link<T>,
-    len: usize,
+    pub len: usize,
     _foo: PhantomData<T>,
 }
 
-pub type Link<T> = Option<NonNull<Node<T>>>;
+type Link<T> = Option<NonNull<Node<T>>>;
 
+#[derive(Debug)]
 struct Node<T> {
     elem: T,
     left: Link<T>,
@@ -657,6 +659,13 @@ impl<T> Tree<T> {
         }
     }
 
+    pub fn cursor(&self) -> Cursor<T> {
+        Cursor {
+            current: self.root,
+            _foo: PhantomData,
+        }
+    }
+
 }
 
 fn drop_by_link<T>(link: Link<T>) {
@@ -675,20 +684,23 @@ impl<T> Drop for Tree<T> {
     }
 }
 
+unsafe impl<T: Send> Send for Tree<T> {}
+unsafe impl<T: Sync> Sync for Tree<T> {}
 
+#[derive(Debug, Default)]
 pub struct Cursor<'a, T> {
     current: Link<T>,
     _foo: PhantomData<&'a T>,  
 }
 
 impl<'a, T> Cursor<'a, T> {
-    fn get(&self) -> Option<&'a T> {
+    pub fn get(&self) -> Option<&'a T> {
         unsafe {
             self.current.map(|node| &(*node.as_ptr()).elem)
         }
     }
 
-    fn left(&mut self) {
+    pub fn left(&mut self) {
         unsafe {
             if let Some(node) = self.current.take() { 
                 self.current = (*node.as_ptr()).left;
@@ -696,7 +708,7 @@ impl<'a, T> Cursor<'a, T> {
         }
     }
 
-    fn right(&mut self) {
+    pub fn right(&mut self) {
         unsafe {
             if let Some(node) = self.current.take() { 
                 self.current = (*node.as_ptr()).right; 
