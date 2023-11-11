@@ -1,5 +1,7 @@
 use std::collections::HashMap;
 use std::sync::Arc;
+use std::ptr::NonNull;
+use std::marker::PhantomData;
 
 #[derive(Default, PartialEq, PartialOrd, Clone, Copy, Debug, Eq, Hash)]
 pub enum Token {
@@ -584,3 +586,122 @@ pub fn token_tree() -> HashMap<Token, Choice> {
 #[derive(Default, PartialEq, PartialOrd, Debug, Clone)]
 pub struct Word(pub Token, pub Arc<Choice>, pub Arc<Choice>);
 pub type Choice = Option<Word>;
+
+
+type TokenTree = Tree<Token>;
+
+struct Tree<T> {
+    root: Link<T>,
+    far_right: Link<T>,
+    current_left: Link<T>,
+    len: usize,
+    _foo: PhantomData<T>,
+}
+
+type Link<T> = Option<NonNull<Node<T>>>;
+
+struct Node<T> {
+    elem: T,
+    left: Link<T>,
+    right: Link<T>,
+}
+
+impl<T> Tree<T> {
+    pub fn new() -> Self {
+        Self {
+            root: None,
+            far_right: None,
+            current_left: None,
+            len: 0,
+            _foo: PhantomData,
+        }
+    }
+
+    fn add_right(&mut self, x: T) {
+        unsafe {
+            let new = NonNull::new_unchecked(Box::into_raw(Box::new(Node {
+                left: None,
+                right: None,
+                elem: x,
+            })));
+            if let Some(far_right) = self.far_right {
+                (*far_right.as_ptr()).right = Some(new);
+            } else {
+                debug_assert!(self.len == 0);
+                self.root = Some(new);
+            }
+            self.far_right = Some(new);
+            self.current_left = Some(new);
+            self.len += 1;
+        }
+    }
+
+    fn add_left(&mut self, x: T, y: T) {
+        unsafe {
+            let new_y = NonNull::new_unchecked(Box::into_raw(Box::new(Node {
+                left: None,
+                right: None,
+                elem: y,
+            })));
+            let new_x = NonNull::new_unchecked(Box::into_raw(Box::new(Node {
+                left: None,
+                right: Some(new_y), 
+                elem: x,
+            })));
+
+            debug_assert!(self.current_left.is_some());
+            let current_left = self.current_left.unwrap();
+            (*current_left.as_ptr()).left = Some(new_x);
+            self.current_left = Some(new_x);
+            self.len += 2;
+        }
+    }
+
+}
+
+fn drop_by_link<T>(link: Link<T>) {
+    unsafe {
+        if let Some(x) = link {
+            let node = Box::from_raw(x.as_ptr());
+            drop_by_link(node.left);
+            drop_by_link(node.right);
+        }
+    }
+}
+
+impl<T> Drop for Tree<T> {
+    fn drop(&mut self) {
+        drop_by_link(self.root);
+    }
+}
+
+
+struct Cursor<'a, T> {
+    current: Link<T>,
+    _foo: PhantomData<&'a T>,  
+}
+
+impl<'a, T> Cursor<'a, T> {
+    fn get(&self) -> Option<&'a T> {
+        unsafe {
+            self.current.map(|node| &(*node.as_ptr()).elem)
+        }
+    }
+
+    fn left(&mut self) {
+        unsafe {
+            if let Some(node) = self.current.take() { 
+                self.current = (*node.as_ptr()).left;
+            }
+        }
+    }
+
+    fn right(&mut self) {
+        unsafe {
+            if let Some(node) = self.current.take() { 
+                self.current = (*node.as_ptr()).right; 
+            }
+        }
+    }
+}
+
