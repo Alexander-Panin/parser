@@ -38,7 +38,7 @@ fn audit(matcher: Vec<Token>, tt: &HashMap<Token, TokenTree>, filename: String) 
     }
 }
 
-fn par(input: Vec<PathBuf>) {
+fn par_run(input: Vec<PathBuf>) {
     let tt = token_tree();
     input
         .par_iter()
@@ -52,8 +52,22 @@ fn par(input: Vec<PathBuf>) {
         .collect()
 }
 
-fn main() {
-    let files = fs::read_dir("./src/js/frameworks").unwrap();
-    // let files = fs::read_dir("./src/js/").unwrap();
-    par(files.map(|f| f.as_ref().unwrap().path()).collect());
+fn collect(path: PathBuf) -> Result<Vec<PathBuf>, std::io::Error> {
+    let mut files = vec![];
+    let mut q = vec![path];
+    while let Some(x) = q.pop() {
+        if x.is_dir() {
+            let files = fs::read_dir(x)?;
+            q.extend(files.map(|f| f.unwrap().path()));
+        } else {
+            files.push(x);
+        }
+    }
+    Ok(files)
+}
+
+fn main() -> Result<(), std::io::Error> {
+    let files = collect(PathBuf::from("./src/js/"))?;
+    par_run(files);
+    Ok(())
 }
