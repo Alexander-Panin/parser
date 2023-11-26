@@ -2,6 +2,7 @@ use std::collections::HashMap;
 use std::sync::Arc;
 use std::ptr::NonNull;
 use std::marker::PhantomData;
+use std::fmt;
 
 #[derive(Default, PartialEq, PartialOrd, Clone, Copy, Debug, Eq, Hash)]
 pub enum Token {
@@ -687,10 +688,18 @@ impl<T> Drop for Tree<T> {
 unsafe impl<T: Send> Send for Tree<T> {}
 unsafe impl<T: Sync> Sync for Tree<T> {}
 
-#[derive(Debug, Default)]
+#[derive(Default)]
 pub struct Cursor<'a, T> {
     current: Link<T>,
     _foo: PhantomData<&'a T>,  
+}
+
+impl<T: fmt::Debug> fmt::Debug for Cursor<'_, T> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("Cursor")
+         .field("elem", &self.get())
+         .finish()
+    }
 }
 
 impl<'a, T> Cursor<'a, T> {
