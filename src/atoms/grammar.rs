@@ -1,5 +1,4 @@
 use std::collections::HashMap;
-use std::sync::Arc;
 use std::ptr::NonNull;
 use std::marker::PhantomData;
 use std::fmt;
@@ -583,11 +582,6 @@ pub fn token_tree() -> HashMap<Token, TokenTree> {
     expr.extend(export);
     expr
 }
-
-#[derive(Default, PartialEq, PartialOrd, Debug, Clone)]
-pub struct Word(pub Token, pub Arc<Choice>, pub Arc<Choice>);
-pub type Choice = Option<Word>;
-
 
 pub type TokenTree = Tree<Token>;
 
