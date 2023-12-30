@@ -3,9 +3,9 @@ macro_rules! tree {
         {
             let mut tt = TokenTree::new();
             $(
-                let mut v = _reverse_vec!([$($x)*]);
-                tt.add_right(v.pop().unwrap());
-                for x in v.into_iter().rev() { 
+                let v = vec![$(Token::$x,)*];
+                tt.add_right(v[0]);
+                for x in v.into_iter().skip(1) {
                     tt.add_left(x, Token::Never); 
                 }
             )*
