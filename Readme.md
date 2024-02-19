@@ -7,7 +7,7 @@ Parser
 
 It will try to parse the files in the root/js folder and print one line of output for each file.
 
-### Status
+### Status (temporarily frozen)
 
 Work in progress - sorry no docs, no tests, some commented println! in the source code.
 
